@@ -8,7 +8,7 @@ PEERJS : Pour la télécommande cellulaire.
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Le Métier de Louis-Charles - Créateur d'IA (Interactive V3)</title>
+<title>Le Métier de Louis - Créateur d'IA (Interactive V3)</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
@@ -149,7 +149,7 @@ PEERJS : Pour la télécommande cellulaire.
     <!-- 1. Intro -->
     <div class="slide active">
       <div class="emoji-giant">👋</div>
-      <h1>Bonjour! Je m'appelle Louis-Charles</h1>
+      <h1>Bonjour! Je m'appelle Louis</h1>
       <h2 style="color: var(--accent-green);">(Le fier beau-papa d'Anthony !)</h2>
       <h2>Devinez c'est quoi mon métier?</h2>
       <div style="display: flex; gap: 20px; margin-top: 20px;">
@@ -213,7 +213,7 @@ PEERJS : Pour la télécommande cellulaire.
     </div>
 
     <!-- 5-12: Storytelling enrichi -->
-    <div class="slide"><div class="emoji-giant">🏗️</div><h2>Je travaille chez M. Lemieux Inc.</h2><p>C'est comme un immense magasin de jouets... mais pour les compagnies qui construisent des choses !</p></div>
+    <div class="slide"><div class="emoji-giant">🏗️</div><h2>Je travaille pour un grand distributeur industriel</h2><p>C'est comme un immense magasin de jouets... mais pour les compagnies qui construisent des choses !</p></div>
     <div class="slide"><h2>Qu'est-ce qu'on vend?</h2><div class="emoji-row"><div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🔩</div><p>Des Boulons</p></div><div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🛠️</div><p>Des Outils</p></div><div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🦺</div><p>Des Casques</p></div></div><p style="margin-top:20px;">On a plus de <strong>170 000</strong> objets différents dans nos entrepôts !</p></div>
     <div class="slide"><div class="emoji-giant" style="animation: none;">😫</div><h2>Le gros problème...</h2><p>Pour vendre tout ça, mes collègues passent BEAUCOUP de temps sur des tâches répétitives sur leurs ordinateurs.</p><p style="color: var(--accent-red); font-weight: bold;">C'est long, c'est plate, et on peut faire des erreurs.</p></div>
     <div class="slide"><div class="emoji-giant">🦸‍♂️</div><h2>Ma mission</h2><p>Je crée des outils spéciaux sur l'ordinateur pour leur faire gagner du temps !</p><p>S'ils faisaient un travail en 1 heure, avec mon outil, ça prend 5 minutes !</p></div>
@@ -278,14 +278,14 @@ PEERJS : Pour la télécommande cellulaire.
     <div class="slide">
       <div class="emoji-giant" style="animation: none;">🪄</div><h2>Place à la magie...</h2>
       <button class="live-demo-btn" style="font-size: 2em; margin-top: 30px;" onclick="document.getElementById('demo-memo').style.display='block'">🎬 Démo en direct avec Antigravity</button>
-      <h3 id="demo-memo" style="display:none; color: var(--accent-yellow); background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px;">👋 Louis-Charles, bascule vers Antigravity (Alt+Tab) !</h3>
+      <h3 id="demo-memo" style="display:none; color: var(--accent-yellow); background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px;">👋 Louis, bascule vers Antigravity (Alt+Tab) !</h3>
     </div>
     
     <div class="slide">
       <h2>Exemple 1 : Outil de Recherche</h2>
       <p>Avant : 15 minutes pour trouver un boulon spécifique.<br>Après : 2 secondes !</p>
       <div class="mockup">
-        <div class="mockup-header">🔍 Recherche M. Lemieux Inc.</div>
+        <div class="mockup-header">🔍 Recherche de pièces</div>
         <div class="mockup-body">
           <input type="text" placeholder="Ex: Boulon acier 2 pouces..." style="padding:10px; width:70%; font-size:1em;" disabled>
           <button style="background:var(--accent-blue); padding:10px;">Chercher</button>
@@ -453,7 +453,7 @@ PEERJS : Pour la télécommande cellulaire.
     };
     function checkAPIKey() {
       if(!ANTHROPIC_API_KEY) {
-        alert("Clé API manquante ! Demandez à Louis-Charles de configurer la clé (Slide 1).");
+        alert("Clé API manquante ! Demandez à Louis de configurer la clé (Slide 1).");
         return false;
       }
       return true;
