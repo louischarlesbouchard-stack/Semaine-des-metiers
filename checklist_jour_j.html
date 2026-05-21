@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checklist Jour J - Concept Interactif Cellulaire</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 40px 20px; background-color: #eef2f3; }
+  .container { background-color: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+  h1 { color: #2c3e50; text-align: center; border-bottom: 3px solid #e74c3c; padding-bottom: 20px; }
+  h2 { color: #c0392b; margin-top: 30px; background: #fdf2e9; padding: 10px 15px; border-radius: 5px; border-left: 5px solid #e67e22; }
+  ul { list-style-type: none; padding-left: 10px; } li { margin-bottom: 12px; font-size: 1.1em; }
+  input[type="checkbox"] { transform: scale(1.5); margin-right: 15px; cursor: pointer; }
+  strong { color: #2980b9; }
+  .panic-mode { background-color: #ffeaea; border: 2px solid #e74c3c; padding: 20px; border-radius: 8px; margin-top: 40px; }
+  .panic-mode h2 { background: transparent; border: none; padding: 0; margin-top: 0; color: #c0392b; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>✅ CHECKLIST JOUR J<br><span style="font-size: 0.6em; color: #7f8c8d;">PRÉSENTATION DOUBLE-ÉCRAN (PEERJS)</span></h1>
+
+  <h2>⏰ LA VEILLE (À la maison)</h2>
+  <ul>
+    <li><label><input type="checkbox"> Teste la <strong>connexion cellulaire</strong> : Ouvre le HTML sur ton laptop, scanne le QR code avec ton téléphone. Valide que le module de navigation fonctionne.</label></li>
+    <li><label><input type="checkbox"> Teste le <strong>Micro Baladeur (WebRTC)</strong> : Sur la slide finale, active le micro sur le cell et parle. Valide que le son sort sur l'ordi et que les sous-titres (Speech API) apparaissent.</label></li>
+    <li><label><input type="checkbox"> Teste le <strong>Vote par Swipe</strong> : Glisse gauche/droite sur le cell, regarde les barres bouger en temps réel sur l'écran d'ordinateur.</label></li>
+    <li><label><input type="checkbox"> Teste la <strong>Photo Magique</strong> : Prends une photo depuis le cell. Valide que le compte à rebours 3-2-1 s'affiche sur le PC et que l'image est bien reçue. Teste la détection visage et l'analyse IA Vision.</label></li>
+  </ul>
+
+  <h2>🏫 30 MINUTES AVANT (Dans la classe)</h2>
+  <ol style="font-size: 1.1em; line-height: 1.8;">
+    <li><strong>Branchements</strong> : Connecte le projecteur et vérifie le SON du portable (Essentiel pour le buzzer et le micro baladeur).</li>
+    <li><strong>Lancement</strong> : Ouvre le HTML dans Chrome (touche F pour plein écran).</li>
+    <li><strong>Sécurité API</strong> : Clique sur <em>🔑 Configurer ma clé IA</em> et colle ta clé Anthropic temporaire.</li>
+    <li><strong>Connexion Cell</strong> : Clique sur <em>📱 Connecter mon cell</em>. Scanne le QR code. Garde ton écran de téléphone allumé.</li>
+    <li><strong>LES 3 TESTS DISCRETS (En bas à droite de la Slide 1)</strong> :
+      <ul>
+        <li><label><input type="checkbox"> <strong>TEST MICRO</strong> : ✅ (Pour les mots magiques et l'applaudimètre)</label></li>
+        <li><label><input type="checkbox"> <strong>TEST CAMÉRA</strong> : ✅ (Assure-toi que la caméra du portable pointe vers la classe pour le scanner humain)</label></li>
+        <li><label><input type="checkbox"> <strong>TEST API (Anthropic)</strong> : ✅ (Pour valider que le Wi-Fi de l'école ne bloque pas les serveurs IA)</label></li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>📋 PENDANT LA PRÉSENTATION (Modes Cellulaire)</h2>
+  <ul>
+    <li><strong>Slide "Vote"</strong> : Le cell bascule en mode swipe. Fais passer le cell aux enfants ! (Touche "R" sur le clavier du laptop pour reset discrètement).</li>
+    <li><strong>Slide "Quiz"</strong> : Le cell bascule en mode Buzzer. Donne le cell à l'équipe nommée. S'ils buzzent, l'écran PC flashe en rouge ! Valide ensuite la réponse (+1 ou Mauvaise).</li>
+    <li><strong>Slide "Photo"</strong> : C'est TOI qui gardes le cell. Cadre la classe, appuie sur prendre la photo. Montre-leur ensuite les 3 niveaux de magie (Filtres, Face-API, Anthropic Vision).</li>
+    <li><strong>Slide "Questions"</strong> : Le cell devient un micro de reportage ! Donne-le à l'enfant qui pose la question pour que sa voix soit amplifiée et sous-titrée.</li>
+  </ul>
+
+  <div class="panic-mode">
+    <h2>🚨 PLAN B : LE PARACHUTE (MODE PANIQUE)</h2>
+    <p>Si la connexion PeerJS plante ou si le Wi-Fi coupe en plein milieu :</p>
+    <ol style="font-size: 1.2em; font-weight: bold; color: #c0392b;">
+      <li>APPUYE SUR LA TOUCHE "P" DU CLAVIER LAPTOP.</li>
+    </ol>
+    <p>Toutes les écoutes actives (micro, cam, webrtc) se coupent instantanément. Un petit toast rouge apparaît en haut. Tu peux continuer à avancer les slides avec les flèches du clavier. Si une slide de vote arrive, demande un vote "à main levée" et utilise les touches "1" et "2" de ton clavier pour compter manuellement !</p>
+  </div>
+
+</div>
+
+</body>
+</html>

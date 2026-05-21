@@ -1,0 +1,994 @@
+<!-- 
+PERMISSIONS REQUISES : Micro, Caméra, Internet.
+API ANTHROPIC : Configurable au lancement.
+PEERJS : Pour la télécommande cellulaire.
+-->
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Le Métier de Louis-Charles - Créateur d'IA (Interactive V3)</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<style>
+  :root {
+    --bg-color: #1a1a2e; --text-color: #ffffff;
+    --accent-blue: #0f3460; --accent-red: #e94560;
+    --accent-yellow: #f9a826; --accent-green: #2ecc71;
+  }
+  body {
+    margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color); color: var(--text-color);
+    overflow: hidden; display: flex; flex-direction: column; height: 100vh;
+  }
+
+  /* --- LAPTOP VIEW --- */
+  #laptop-view { flex-grow: 1; display: flex; flex-direction: column; position: relative; height: 100vh; }
+  #slide-container { flex-grow: 1; position: relative; display: flex; justify-content: center; align-items: center; }
+  
+  .slide {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    opacity: 0; transition: opacity 0.4s ease-in-out;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+    padding: 5%; pointer-events: none;
+  }
+  .slide.active { opacity: 1; pointer-events: auto; }
+
+  h1 { font-size: 4em; margin-bottom: 0.5em; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+  h2 { font-size: 3em; margin-bottom: 0.5em; color: var(--accent-yellow); }
+  p, li { font-size: 2em; line-height: 1.5; max-width: 80%; margin: 0.5em auto; }
+  ul { text-align: left; display: inline-block; margin-top: 1em;} li { margin-bottom: 0.5em; }
+
+  .emoji-giant { font-size: 8em; margin: 0.2em; animation: float 3s ease-in-out infinite; }
+  .emoji-row { display: flex; justify-content: center; gap: 40px; margin-top: 30px; flex-wrap: wrap;}
+  .emoji-card { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; text-align: center; width: 250px;}
+  .emoji-card p { font-size: 1.5em; font-weight: bold; margin-top: 15px;}
+  
+  @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+  @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 20% { opacity: 1; transform: translateY(-20vh) scale(1); } 100% { transform: translateY(-120vh) scale(1.5); opacity: 0; } }
+  @keyframes winnerScale { 0% { transform: scale(1); } 50% { transform: scale(1.5); } 100% { transform: scale(1.2); } }
+  
+  #controls {
+    height: 80px; background: rgba(0,0,0,0.5); display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 100;
+  }
+  button {
+    background: var(--accent-red); color: white; border: none; padding: 15px 30px; font-size: 1.5em; font-weight: bold; border-radius: 10px; cursor: pointer; transition: transform 0.2s, background 0.2s;
+  }
+  button:hover { transform: scale(1.05); } button:disabled { background: #555; cursor: not-allowed; transform: none; }
+  #counter { font-size: 1.5em; font-weight: bold; color: var(--accent-yellow);}
+  
+  .box { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; border-left: 5px solid var(--accent-yellow);}
+  .code-box { background: #0d1b2a; color: #2ecc71; font-family: monospace; padding: 20px; border-radius: 10px; text-align: left; font-size: 1.5em; width: 80%; margin-top: 20px; border-left: 5px solid var(--accent-red); box-shadow: inset 0 0 15px rgba(0,0,0,0.8); }
+  
+  .mockup { background: #fff; color: #333; border-radius: 15px; padding: 20px; width: 80%; text-align: left; margin-top: 20px;}
+  .mockup-header { border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 10px; font-weight: bold; font-size: 1.5em; display: flex; align-items: center; gap: 10px;}
+  .mockup-body { font-size: 1.2em; padding: 10px;}
+  
+  /* Status & Overlays */
+  #cell-status { position: fixed; bottom: 100px; right: 20px; font-size: 2em; background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 30px; z-index: 100; }
+  #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #e74c3c; color: white; padding: 15px 30px; font-size: 1.5em; border-radius: 30px; z-index: 9999; display: none; }
+  #magic-overlay { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:9999; overflow:hidden; font-size: 10em;}
+  
+  /* Vote Cards */
+  .vote-card { display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; width: 40%; position: relative; transition: all 0.5s; }
+  .vote-bar-container { width: 100%; height: 30px; background: #333; border-radius: 15px; margin-top: 20px; overflow: hidden; }
+  .vote-bar { height: 100%; width: 0%; background: var(--accent-green); transition: width 0.3s; }
+  
+  /* Score Banner */
+  #score-banner { position: absolute; top: 0; left: 0; right: 0; height: 60px; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; gap: 40px; font-size: 1.8em; font-weight: bold; z-index: 50; }
+  
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+  .modal-content { background: var(--accent-blue); padding: 40px; border-radius: 20px; width: 500px; text-align: left; }
+  .modal-content input { width: 100%; padding: 10px; font-size: 1.2em; margin-bottom: 15px; border-radius: 5px; border: none; }
+  
+  /* --- REMOTE VIEW (CELL) --- */
+  #remote-view { display: none; flex-direction: column; height: 100vh; width: 100vw; background: #111; color: white; font-family: sans-serif; text-align: center; }
+  .remote-module { display: none; flex-grow: 1; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+  
+  /* Swipe Module */
+  #mod-swipe { position: relative; overflow: hidden; }
+  #swipe-left-anim, #swipe-right-anim { position: absolute; top: 50%; transform: translateY(-50%); font-size: 4em; opacity: 0.3; animation: pulse 1s infinite; }
+  #swipe-left-anim { left: 20px; } #swipe-right-anim { right: 20px; }
+  @keyframes pulse { 0% { opacity: 0.2; transform: translateY(-50%) scale(1); } 50% { opacity: 0.8; transform: translateY(-50%) scale(1.2); } 100% { opacity: 0.2; transform: translateY(-50%) scale(1); } }
+  
+  /* Buzzer Module */
+  .btn-buzz { background: radial-gradient(circle, #ff4757, #ff6b81); border: 10px solid #c0392b; width: 250px; height: 250px; border-radius: 50%; font-size: 4em; color: white; font-weight: bold; box-shadow: 0 15px 35px rgba(255,0,0,0.5); cursor: pointer; }
+  .btn-buzz:active { transform: scale(0.95); box-shadow: 0 5px 15px rgba(255,0,0,0.5); }
+  
+  /* Navigation Module */
+  .nav-btn { flex-grow: 1; background: #2f3542; margin: 10px; border-radius: 20px; font-size: 4em; display: flex; justify-content: center; align-items: center; border: none; color: white; }
+  
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast">⚠️ MODE PANIQUE ACTIVÉ ⚠️</div>
+
+<!-- MODAL CONFIGURATION ÉQUIPES -->
+<div id="team-modal" class="modal-overlay">
+  <div class="modal-content">
+    <h2>⚙️ Configurer Équipes</h2>
+    <label>Équipe 1 :</label>
+    <input type="text" id="team1-name" value="Les Vis-toires">
+    <label>Équipe 2 :</label>
+    <input type="text" id="team2-name" value="Les Robots Fous">
+    <label>Équipe 3 (Optionnelle) :</label>
+    <input type="text" id="team3-name" placeholder="Laisser vide si 2 équipes">
+    <div style="text-align: right; margin-top: 20px;">
+      <button onclick="saveTeams()" style="background: var(--accent-green);">Sauvegarder</button>
+      <button onclick="document.getElementById('team-modal').style.display='none'" style="background: #e74c3c;">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<div id="laptop-view">
+  
+  <!-- Overlays obligatoires de la V3 -->
+  <button id="btn-magic-voice" style="position:absolute; top:20px; right:20px; z-index:100; font-size: 1em; padding: 10px; background: var(--accent-red);" onclick="toggleMagicVoice()">🎙️ Mode magie</button>
+  <div id="magic-overlay"></div>
+  
+  <div id="cell-status">📱 En attente...</div>
+  
+  <div id="score-banner"></div>
+  
+  <div id="subtitle-bar" style="position: absolute; bottom: 90px; left: 10%; right: 10%; background: rgba(0,0,0,0.8); color: #f1c40f; font-size: 2.5em; font-weight: bold; padding: 20px; text-align: center; border-radius: 15px; border: 3px solid #f1c40f; display: none; z-index: 100;"></div>
+
+  <div id="test-tools" style="position: absolute; bottom: 170px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100;">
+    <button id="test-mic" style="font-size: 0.8em; padding: 8px; background: #555;" onclick="testMic()">🎤 TEST</button>
+    <button id="test-cam" style="font-size: 0.8em; padding: 8px; background: #555;" onclick="testCam()">📸 TEST</button>
+    <button id="test-net" style="font-size: 0.8em; padding: 8px; background: #555;" onclick="testInternet()">🌐 API</button>
+  </div>
+
+  <div id="slide-container">
+    
+    <!-- 1. Intro -->
+    <div class="slide active">
+      <div class="emoji-giant">👋</div>
+      <h1>Bonjour! Je m'appelle Louis-Charles</h1>
+      <h2 style="color: var(--accent-green);">(Le fier beau-papa d'Anthony !)</h2>
+      <h2>Devinez c'est quoi mon métier?</h2>
+      <div style="display: flex; gap: 20px; margin-top: 20px;">
+        <button onclick="configurerCleIA()" style="background: var(--accent-blue);">🔑 Configurer clé IA</button>
+        <button onclick="document.getElementById('team-modal').style.display='flex'" style="background: var(--accent-yellow); color: black;">⚙️ Équipes</button>
+        <button onclick="showQRCode()" style="background: var(--accent-green);">📱 Connecter Cell</button>
+      </div>
+    </div>
+    
+    <!-- OVERLAY QR CODE -->
+    <div id="qr-overlay" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.9); padding:40px; border-radius:20px; z-index:3000; text-align:center; border: 2px solid var(--accent-green);">
+       <h2 style="color:white; margin-top:0;">📱 Scannez pour connecter</h2>
+       <p id="qr-warning" style="color:var(--accent-yellow); font-size:1.2em; max-width:400px; margin: 10px auto;">Attention: Ne fonctionnera que si hébergé en ligne (ex: GitHub Pages).</p>
+       <canvas id="qr-canvas" style="border: 10px solid white; border-radius: 10px; margin-top:20px;"></canvas>
+       <br>
+       <button onclick="document.getElementById('qr-overlay').style.display='none'" style="margin-top:20px; background:var(--accent-red);">Fermer</button>
+    </div>
+
+    <!-- 2. APPLAUDIMÈTRE (Réintégré V1 -> V3) -->
+    <div class="slide">
+      <h2 style="color: var(--accent-red);">QUI PENSE QUE JE SUIS LE CHEF DE ROBOTS ?</h2>
+      <h1 style="color: var(--accent-yellow);">CRIEZ FORT !! 🔊</h1>
+      <div style="width: 100px; height: 300px; border: 5px solid white; border-radius: 50px; margin: 30px auto; position: relative; overflow: hidden; background: rgba(0,0,0,0.5);">
+        <div id="vol-bar" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: linear-gradient(to top, #2ecc71, #f1c40f, #e74c3c); transition: height 0.1s;"></div>
+      </div>
+      <button id="btn-applause" onclick="startApplause()" style="background: var(--accent-blue);">🎤 ACTIVER L'OREILLE DE L'IA</button>
+      <button id="btn-stop-applause" onclick="stopApplause()" style="display:none; background: #e74c3c;">Arrêter</button>
+    </div>
+    
+    <!-- 3. Vote Swipe -->
+    <div class="slide" data-module="swipe" id="slide-vote-1">
+      <h2>🗳️ VOTE PAR SWIPE !</h2>
+      <p>Prenez le cell et glissez vers la gauche ou la droite !</p>
+      <div style="display: flex; justify-content: center; gap: 50px; width: 90%; margin-top: 30px;">
+        <div class="vote-card" id="card-left-1">
+          <div style="font-size: 4em;">🚒</div><h2>Pompier</h2>
+          <h1 id="vote-left" style="font-size: 5em; margin: 0;">0</h1>
+          <div class="vote-bar-container"><div id="bar-left" class="vote-bar"></div></div>
+        </div>
+        <div class="vote-card" id="card-right-1">
+          <div style="font-size: 4em;">🤖</div><h2>Chef de Robots</h2>
+          <h1 id="vote-right" style="font-size: 5em; margin: 0;">0</h1>
+          <div class="vote-bar-container"><div id="bar-right" class="vote-bar" style="background: var(--accent-red);"></div></div>
+        </div>
+      </div>
+      <p id="vote-total" style="color: var(--accent-yellow); font-weight: bold; margin-top: 20px;">0 / 25 votes reçus</p>
+      <button onclick="terminerVote(1)" style="margin-top: 10px;">🏁 TERMINER LE VOTE</button>
+      <h1 id="winner-reveal-1" style="display: none; position: absolute; z-index: 500; font-size: 8em; text-shadow: 5px 5px 20px black;">🏆 <span id="winner-text-1">GAGNANT</span> !</h1>
+    </div>
+
+    <!-- 4. Quiz 1 (Buzzer) -->
+    <div class="slide" data-module="buzzer" data-quiz="1">
+      <h2>Lequel est mon métier?</h2>
+      <div class="emoji-row">
+        <div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🚒</div><p>Pompier</p></div>
+        <div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🧑‍🏫</div><p>Professeur</p></div>
+        <div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🚀</div><p>Astronaute</p></div>
+        <div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🤖</div><p>Chef de Robots</p></div>
+      </div>
+      <h1 id="buzz-display" style="display:none; color: white; background: red; padding: 20px; position: absolute; z-index: 200; border-radius: 20px; font-size: 4em; box-shadow: 0 0 50px red;"></h1>
+    </div>
+
+    <!-- 5-12: Storytelling enrichi -->
+    <div class="slide"><div class="emoji-giant">🏗️</div><h2>Je travaille chez M. Lemieux Inc.</h2><p>C'est comme un immense magasin de jouets... mais pour les compagnies qui construisent des choses !</p></div>
+    <div class="slide"><h2>Qu'est-ce qu'on vend?</h2><div class="emoji-row"><div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🔩</div><p>Des Boulons</p></div><div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🛠️</div><p>Des Outils</p></div><div class="emoji-card"><div class="emoji-giant" style="font-size: 5em;">🦺</div><p>Des Casques</p></div></div><p style="margin-top:20px;">On a plus de <strong>170 000</strong> objets différents dans nos entrepôts !</p></div>
+    <div class="slide"><div class="emoji-giant" style="animation: none;">😫</div><h2>Le gros problème...</h2><p>Pour vendre tout ça, mes collègues passent BEAUCOUP de temps sur des tâches répétitives sur leurs ordinateurs.</p><p style="color: var(--accent-red); font-weight: bold;">C'est long, c'est plate, et on peut faire des erreurs.</p></div>
+    <div class="slide"><div class="emoji-giant">🦸‍♂️</div><h2>Ma mission</h2><p>Je crée des outils spéciaux sur l'ordinateur pour leur faire gagner du temps !</p><p>S'ils faisaient un travail en 1 heure, avec mon outil, ça prend 5 minutes !</p></div>
+    <div class="slide"><div class="emoji-giant">🤫</div><h1 style="color: var(--accent-red);">Mais j'ai un GRAND SECRET...</h1></div>
+    <div class="slide" id="slide-secret"><div class="emoji-giant">🤯</div><h2>Je ne sais PAS programmer!</h2><p>Je ne connais pas le code informatique secret des ordinateurs.</p></div>
+    <div class="slide"><div class="emoji-giant">🎬</div><h2>Je suis comme un réalisateur de film</h2><p>Le réalisateur ne tient pas la caméra et ne fait pas les cascades.</p><p>J'ai l'idée, j'écris l'histoire (le besoin)...</p><p>Et c'est <span class="highlight">mon équipe technique</span> qui fait le vrai travail.</p></div>
+    <div class="slide"><h2>Mon équipe technique? L'Intelligence Artificielle!</h2><div class="emoji-row"><div class="emoji-card"><div class="emoji-giant" style="font-size: 4em;">🧠</div><p><strong>Claude</strong><br>(Le Cerveau)</p></div><div class="emoji-card"><div class="emoji-giant" style="font-size: 4em;">💻</div><p><strong>Antigravity</strong><br>(Les Mains)</p></div></div></div>
+
+    <!-- 13. Camera -->
+    <div class="slide">
+      <h2 style="color: var(--accent-green);">🤖 L'IA VOUS REGARDE EN CE MOMENT MÊME!</h2>
+      <div style="position:relative; width: 70vw; max-width: 900px; height: auto; aspect-ratio: 4/3; margin: 0 auto; border: 6px solid var(--accent-green); border-radius: 15px; overflow: hidden; background: #000;" id="video-container">
+        <video id="video-cam" autoplay muted style="transform: scaleX(-1); width: 100%; height: 100%; object-fit: cover;"></video>
+        <div id="face-canvas-container" style="position: absolute; top:0; left:0; width:100%; height:100%; transform: scaleX(-1);"></div>
+      </div>
+      <h1 id="face-count" style="margin-top: 10px;">🤖 0 HUMAINS DÉTECTÉS</h1>
+      <div style="margin-top: 10px;"><button id="btn-cam" onclick="startCam()" style="background: var(--accent-blue);">📸 ACTIVER LES YEUX DE L'IA</button><button id="btn-stop-cam" onclick="stopCam()" style="display:none; background: #e74c3c;">Fermer</button></div>
+    </div>
+
+    <!-- 14. Levez la main interactif -->
+    <div class="slide">
+      <div class="emoji-giant" style="font-size: 5em;">🙋‍♂️🙋‍♀️</div>
+      <h2>Levez la main... Qui a déjà parlé à une IA ?</h2>
+      <div class="emoji-row" style="gap: 30px;">
+        <button onclick="incMain('siri')" class="box" style="font-size: 1.5em; border: none; cursor: pointer;">📱 Siri (<span id="c-siri">0</span>)</button>
+        <button onclick="incMain('chat')" class="box" style="font-size: 1.5em; border: none; cursor: pointer;">💬 ChatGPT (<span id="c-chat">0</span>)</button>
+        <button onclick="incMain('jamais')" class="box" style="font-size: 1.5em; border: none; cursor: pointer; border-left-color: red;">❌ Jamais (<span id="c-jamais">0</span>)</button>
+      </div>
+    </div>
+
+    <!-- 15-17 -->
+    <div class="slide"><div class="emoji-giant" style="animation: none;">⚠️</div><h2>Mais attention...</h2><p>L'IA n'est pas parfaite. Elle se trompe parfois ! Je dois toujours vérifier son travail.</p></div>
+    <div class="slide"><h2>Étape 1 : L'idée</h2><div class="emoji-giant">💡</div><p>J'ai une idée ou un collègue a un besoin. On imagine l'outil parfait.</p></div>
+    <div class="slide"><h2>Étape 2 : Le "Prompt"</h2><div class="emoji-giant" style="font-size: 4em;">✍️</div><p>J'écris les instructions très claires à l'IA. C'est ça, un <strong>Prompt</strong>.</p></div>
+
+    <!-- 18. Quiz Sandwich (Buzzer) -->
+    <div class="slide" data-module="buzzer" data-quiz="2">
+      <h2>DEVINEZ LE MEILLEUR PROMPT !</h2>
+      <p style="font-size: 1.5em;">Faire un sandwich au beurre d'arachide ? (Équipes, préparez-vous !)</p>
+      <div style="display: flex; flex-direction: column; gap: 15px; width: 80%; margin-top: 20px;">
+        <div class="box" style="border-left-color: var(--accent-red);">❌ 1. "Fais un sandwich."</div>
+        <div class="box" style="border-left-color: var(--accent-red);">❌ 2. "Prends du beurre d'arachide et mets-le sur le pain."</div>
+        <div class="box" style="border-left-color: var(--accent-green); background: rgba(46,204,113,0.2);">✅ 3. "Prends 2 tranches. Ouvre le pot. Étale le beurre..."</div>
+      </div>
+      <h1 id="buzz-display-2" style="display:none; color: white; background: red; padding: 20px; position: absolute; z-index: 200; border-radius: 20px; top: 30%; font-size: 4em; box-shadow: 0 0 50px red;"></h1>
+    </div>
+
+    <!-- 19-25 -->
+    <div class="slide"><h2>Étape 3 : L'IA au travail</h2><div class="emoji-giant">🤖</div><p>L'IA lit mon prompt et tape le code informatique à la vitesse de l'éclair ⚡</p></div>
+    <div class="slide"><h2>Étape 4 : La vérification</h2><div class="emoji-giant">✅</div><p>Je teste l'outil. Si ça ne marche pas, je donne un nouveau prompt pour corriger le bogue.</p></div>
+    <div class="slide"><div class="emoji-giant">😂</div><h2 style="color: var(--accent-red);">L'ANECDOTE DRÔLE</h2><div class="box" style="text-align: left;"><p><strong>Moi :</strong> "Commande des boulons pour 100 pouces de long."</p><p><strong>Ce que je voulais dire :</strong> 50 petits boulons de 2 pouces (50 x 2 = 100).</p><p><strong>L'IA a commandé :</strong> Un boulon mutant géant de 100 pouces (2,5 mètres) !! 🦕🔧</p></div></div>
+    
+    <div class="slide">
+      <h2 style="color: var(--accent-green);">🎤 UN VOLONTAIRE ? Pose ta question !</h2>
+      <div style="width: 85%; background: #fff; border-radius: 15px; padding: 30px; color: #333;">
+        <input type="text" id="chat-input" placeholder="Taper la question..." style="width: 70%; font-size: 1.5em; padding: 10px;">
+        <button onclick="askAI()" style="background: var(--accent-green);">ENVOYER 🚀</button>
+        <div id="chat-response" style="margin-top: 20px; font-size: 1.5em; font-weight: bold; min-height: 100px; color: #0f3460;">En attente...</div>
+      </div>
+    </div>
+    
+    <div class="slide">
+      <div class="emoji-giant" style="animation: none;">🪄</div><h2>Place à la magie...</h2>
+      <button class="live-demo-btn" style="font-size: 2em; margin-top: 30px;" onclick="document.getElementById('demo-memo').style.display='block'">🎬 Démo en direct avec Antigravity</button>
+      <h3 id="demo-memo" style="display:none; color: var(--accent-yellow); background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px;">👋 Louis-Charles, bascule vers Antigravity (Alt+Tab) !</h3>
+    </div>
+    
+    <div class="slide">
+      <h2>Exemple 1 : Outil de Recherche</h2>
+      <p>Avant : 15 minutes pour trouver un boulon spécifique.<br>Après : 2 secondes !</p>
+      <div class="mockup">
+        <div class="mockup-header">🔍 Recherche M. Lemieux Inc.</div>
+        <div class="mockup-body">
+          <input type="text" placeholder="Ex: Boulon acier 2 pouces..." style="padding:10px; width:70%; font-size:1em;" disabled>
+          <button style="background:var(--accent-blue); padding:10px;">Chercher</button>
+          <p style="color:green; font-weight:bold; margin-top:10px;">✓ 1 résultat trouvé en 0.02s</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="slide">
+      <h2>Exemple 2 : Le Robot Liseur de PDF</h2>
+      <p>L'IA lit les commandes des clients à notre place et les rentre dans le système.</p>
+      <div class="mockup" style="display:flex; justify-content:space-around;">
+        <div style="width:40%; text-align:center;">📄<br>PDF Client</div>
+        <div style="font-size:2em; color:var(--accent-green); align-self:center;">➡️ 🤖 ➡️</div>
+        <div style="width:40%; text-align:center;">💻<br>Système SAP</div>
+      </div>
+    </div>
+
+    <!-- 26. PHOTO MAGIQUE -->
+    <div class="slide" data-module="photo" id="slide-photo">
+      <h2>📸 PHOTO DE CLASSE AVEC L'IA</h2>
+      <div style="background: #f1c40f; color: #333; padding: 10px; font-weight: bold; border-radius: 10px;">🔒 La photo reste sur cet ordi, N'EST PAS sauvegardée et sera effacée!</div>
+      
+      <div id="photo-container" style="margin-top: 20px; display:none; position: relative;">
+        <img id="captured-photo" style="max-height: 400px; border-radius: 10px; border: 5px solid white;">
+        <div id="photo-overlay" style="position: absolute; top:0; left:0; width:100%; height:100%;"></div>
+      </div>
+      
+      <h1 id="photo-countdown" style="font-size: 8em; color: red; display: none;">3</h1>
+
+      <div id="photo-actions" style="display:none; margin-top: 20px; gap: 15px;">
+        <button onclick="applyFilter()" style="background: #3498db;">🎨 Filtres</button>
+        <button onclick="detectFaces()" style="background: #9b59b6;">👑 Couronnes (IA)</button>
+        <button onclick="analyzeVision()" style="background: #2ecc71;">🧠 Analyse Magique (IA)</button>
+        <button onclick="trashPhoto()" style="background: #e74c3c;">🗑️ Effacer</button>
+      </div>
+      <div id="vision-response" style="margin-top: 20px; font-size: 1.5em; font-weight: bold; color: var(--accent-yellow);"></div>
+    </div>
+
+    <!-- 27-28 -->
+    <div class="slide"><div class="emoji-giant">😎</div><h2>Pourquoi c'est cool comme métier?</h2><ul><li>Créer des choses utiles</li><li>Apprendre toujours de nouvelles technologies</li><li>Résoudre des énigmes tous les jours</li></ul></div>
+    <div class="slide"><div class="emoji-giant">🚀</div><h2>C'est VOTRE futur!</h2><p>Pas besoin d'être un génie en maths !<br>Il faut être curieux, logique et savoir bien s'expliquer.</p></div>
+
+    <!-- 29. Vote Final -->
+    <div class="slide" data-module="swipe" id="slide-vote-2">
+      <h2>L'IA, plus tard quand vous serez grands...</h2>
+      <div style="display: flex; justify-content: center; gap: 50px; width: 90%; margin-top: 30px;">
+        <div class="vote-card" id="card-left-2"><h2>Ça va AIDER 👍</h2><h1 id="v2-left" style="font-size: 5em;">0</h1><div class="vote-bar-container"><div id="b2-left" class="vote-bar"></div></div></div>
+        <div class="vote-card" id="card-right-2"><h2>Ça fait PEUR 😨</h2><h1 id="v2-right" style="font-size: 5em;">0</h1><div class="vote-bar-container"><div id="b2-right" class="vote-bar" style="background: var(--accent-red);"></div></div></div>
+      </div>
+      <button onclick="terminerVote(2)" style="margin-top: 20px;">🏁 TERMINER LE VOTE</button>
+      <h1 id="winner-reveal-2" style="display: none; position: absolute; z-index: 500; font-size: 8em; text-shadow: 5px 5px 20px black;">🏆 <span id="winner-text-2">GAGNANT</span> !</h1>
+    </div>
+
+    <!-- 30-31 -->
+    <div class="slide"><div class="emoji-giant">🏆</div><h1 style="color: var(--accent-green);">MERCI BEAUCOUP !</h1><div class="box"><h2>🏠 DÉFI MAISON :</h2><p>Ce soir, posez UNE question à une IA avec vos parents !</p></div></div>
+    
+    <div class="slide" data-module="micro">
+      <div class="emoji-giant" style="font-size: 10em;">🙋‍♂️🙋‍♀️</div>
+      <h1 style="color: var(--accent-yellow);">VOS QUESTIONS?</h1>
+      <div id="micro-indicator" style="display:none; color: red; font-size: 2em; font-weight: bold; animation: pulse 1s infinite;">🎤 MICRO CELLULAIRE EN DIRECT</div>
+    </div>
+
+  </div>
+
+  <div id="controls">
+    <button id="prevBtn">⬅️ Précédent</button>
+    <div id="counter">1 / 32</div>
+    <button id="nextBtn">Suivant ➡️</button>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- --- REMOTE VIEW (CELL) --- -->
+<!-- ========================================== -->
+<div id="remote-view">
+  
+  <div id="mod-nav" class="remote-module" style="display: flex;">
+    <h2 style="margin: 0; padding: 10px; color: #7f8fa6;">Navigation</h2>
+    <div style="display: flex; gap: 10px; flex-grow: 1; width: 100%;">
+      <button class="nav-btn" onclick="sendCmd('prev')">⬅️</button>
+      <button class="nav-btn" onclick="sendCmd('next')">➡️</button>
+    </div>
+  </div>
+
+  <div id="mod-swipe" class="remote-module">
+    <h2>VOTE !<br><span style="font-size: 0.5em; color: #f1c40f;">Glisse vers la gauche ou la droite</span></h2>
+    <div id="swipe-area" style="flex-grow: 1; width: 100%; border: 2px dashed #555; border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 2em; color: #555;">
+      (Swipe ici)
+    </div>
+    <div id="swipe-left-anim">⬅️</div>
+    <div id="swipe-right-anim">➡️</div>
+  </div>
+
+  <div id="mod-buzzer" class="remote-module">
+    <h3 id="cell-team-name" style="color: #f1c40f; font-size: 2em; margin-bottom: 20px;">ÉQUIPE</h3>
+    <div id="buzz-main">
+      <button class="btn-buzz" onclick="sendBuzz()">BUZZ! 🔔</button>
+      <div style="margin-top: 40px;">
+        <button onclick="nextTeam()" style="background: #34495e; color: white; padding: 15px; font-size: 1.5em; border: none; border-radius: 10px;">▶ ÉQUIPE SUIVANTE</button>
+      </div>
+    </div>
+    <div id="buzz-judge" style="display:none; width: 100%; flex-direction: column; gap: 20px;">
+      <h2 style="margin-bottom: 10px;">Réponse ?</h2>
+      <button onclick="resolveBuzz('yes')" style="background: #2ecc71; color: white; padding: 30px; font-size: 2em; border: none; border-radius: 20px;">✅ BONNE (+1)</button>
+      <button onclick="resolveBuzz('no')" style="background: #e74c3c; color: white; padding: 30px; font-size: 2em; border: none; border-radius: 20px;">❌ MAUVAISE</button>
+    </div>
+  </div>
+
+  <div id="mod-photo" class="remote-module">
+    <h2 style="color: #3498db;">PHOTO MAGIQUE</h2>
+    <p>Cadre bien la classe !</p>
+    <video id="cell-video" autoplay playsinline style="width: 100%; max-height: 50vh; border-radius: 10px; background: black; object-fit: cover;"></video>
+    <button onclick="takeCellPhoto()" style="background: #e74c3c; color: white; padding: 20px; font-size: 2em; border: none; border-radius: 50px; margin-top: 20px; width: 80%;">📷 PRENDRE LA PHOTO</button>
+    <canvas id="cell-canvas" style="display:none;"></canvas>
+  </div>
+
+  <div id="mod-micro" class="remote-module">
+    <h2 style="color: #e67e22;">🎤 MICRO BALADEUR</h2>
+    <button id="btn-start-mic" onclick="startCellMic()" style="background: #e67e22; color: white; padding: 30px; font-size: 2em; border: none; border-radius: 20px; width: 90%;">🔴 ACTIVER LE MICRO</button>
+    <button id="btn-stop-mic" onclick="stopCellMic()" style="background: #c0392b; color: white; padding: 30px; font-size: 2em; border: none; border-radius: 20px; width: 90%; display:none;">⏹ COUPER LE MICRO</button>
+    <p style="margin-top: 20px; color: #7f8fa6;">La voix sortira sur l'ordinateur !</p>
+  </div>
+  
+  <div id="remote-toast" style="position:fixed; top:20px; left:50%; transform:translateX(-50%); background: #2ecc71; padding: 10px 20px; border-radius: 20px; display:none; font-weight: bold; z-index:999;">✅ Envoyé !</div>
+</div>
+
+<audio id="remote-audio-player" autoplay></audio>
+
+<script>
+  // ==========================================
+  // SHARED STATE & UTILS
+  // ==========================================
+  const urlParams = new URLSearchParams(window.location.search);
+  const isRemote = urlParams.has('remote');
+  const remoteId = urlParams.get('remote');
+  let peer, conn, mediaCall;
+  let panicMode = false;
+  let ANTHROPIC_API_KEY = "";
+  
+  // Teams State
+  let teams = [{name: "Les Vis-toires", score: 0}, {name: "Les Robots Fous", score: 0}];
+  let currentTeamIdx = 0;
+
+  function showToast(msg, isError = true) {
+    const t = document.getElementById(isRemote ? 'remote-toast' : 'toast');
+    t.innerText = msg;
+    t.style.background = isError ? '#e74c3c' : '#2ecc71';
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+
+  // ==========================================
+  // LAPTOP LOGIC
+  // ==========================================
+  if(!isRemote) {
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const counter = document.getElementById('counter');
+    
+    // Config Key
+    window.configurerCleIA = () => {
+      const key = prompt("Collez la clé API Anthropic (elle ne sera pas sauvegardée) :");
+      if(key) { ANTHROPIC_API_KEY = key.trim(); showToast("Clé configurée temporairement ✅", false); }
+    };
+    function checkAPIKey() {
+      if(!ANTHROPIC_API_KEY) {
+        alert("Clé API manquante ! Demandez à Louis-Charles de configurer la clé (Slide 1).");
+        return false;
+      }
+      return true;
+    }
+
+    // Config Teams
+    window.saveTeams = () => {
+       teams = [];
+       const t1 = document.getElementById('team1-name').value; if(t1) teams.push({name: t1, score: 0});
+       const t2 = document.getElementById('team2-name').value; if(t2) teams.push({name: t2, score: 0});
+       const t3 = document.getElementById('team3-name').value; if(t3) teams.push({name: t3, score: 0});
+       if(teams.length === 0) teams = [{name: "Équipe 1", score: 0}, {name: "Équipe 2", score: 0}];
+       document.getElementById('team-modal').style.display = 'none';
+       updateScoreBanner();
+       showToast("Équipes sauvegardées ! ✅", false);
+    };
+
+    // Hands counter
+    let hc = {siri:0, chat:0, jamais:0};
+    window.incMain = (k) => { hc[k]++; document.getElementById(`c-${k}`).innerText = hc[k]; };
+
+    // Slide Engine
+    function updateSlides() {
+      slides.forEach((slide, index) => {
+        slide.classList.remove('active');
+        if (index === currentSlide) slide.classList.add('active');
+      });
+      counter.innerText = `${currentSlide + 1} / ${slides.length}`;
+      document.getElementById('prevBtn').disabled = currentSlide === 0;
+      document.getElementById('nextBtn').disabled = currentSlide === slides.length - 1;
+      
+      const activeSlide = slides[currentSlide];
+      const mod = activeSlide.getAttribute('data-module') || 'nav';
+      
+      // Auto-stop micro/camera
+      if(mod !== 'micro') stopLaptopWebRTC();
+      if(activeSlide.id !== 'slide-photo' && document.getElementById('video-cam').srcObject) stopCam(); // stop scanner cam if leaving
+
+      if(conn && conn.open) conn.send({type: 'SWITCH_MODULE', module: mod});
+      
+      // Display score banner if buzzer slide
+      document.getElementById('score-banner').style.display = (mod === 'buzzer') ? 'flex' : 'none';
+      if(mod === 'buzzer') updateScoreBanner();
+      
+      if(currentSlide === 10 && !panicMode) playSynth('tada'); // slide secret
+    }
+    
+    function updateScoreBanner() {
+      const b = document.getElementById('score-banner');
+      b.innerHTML = teams.map(t => `<div>${t.name}: <span style="color:var(--accent-green);">${t.score}</span></div>`).join('');
+    }
+
+    window.nextSlide = () => { if (currentSlide < slides.length - 1) { currentSlide++; updateSlides(); } };
+    window.prevSlide = () => { if (currentSlide > 0) { currentSlide--; updateSlides(); } };
+    document.getElementById('nextBtn').addEventListener('click', window.nextSlide);
+    document.getElementById('prevBtn').addEventListener('click', window.prevSlide);
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'p' || e.key === 'P') triggerPanic();
+      else if(e.key === 'r' || e.key === 'R') resetVotes();
+      else if(e.key === 'ArrowRight' || e.key === ' ') window.nextSlide();
+      else if(e.key === 'ArrowLeft') window.prevSlide();
+      else if(e.key === '1') voteAction(slides[currentSlide].id === 'slide-vote-1' ? 1 : 2, 'left'); // Fallback vote
+      else if(e.key === '2') voteAction(slides[currentSlide].id === 'slide-vote-1' ? 1 : 2, 'right'); // Fallback vote
+      else if(e.key === 'f' || e.key === 'F') document.documentElement.requestFullscreen().catch(()=>{});
+    });
+
+    function triggerPanic() {
+      panicMode = true;
+      if(conn) conn.send({type: 'PANIC'});
+      stopLaptopWebRTC();
+      stopCam();
+      stopApplause();
+      if(magicRec) magicRec.stop();
+      document.getElementById('btn-magic-voice').style.display = 'none';
+      showToast("MODE PANIQUE ACTIVÉ. Fonctions interactives désactivées.");
+    }
+
+    // PEERJS LAPTOP
+    window.showQRCode = () => {
+      peer = new Peer();
+      peer.on('open', (id) => {
+        const url = window.location.href.split('?')[0] + '?remote=' + id;
+        document.getElementById('qr-overlay').style.display = 'block';
+        if(window.location.protocol === 'file:') {
+           document.getElementById('qr-warning').style.display = 'block';
+        } else {
+           document.getElementById('qr-warning').style.display = 'none';
+        }
+        QRCode.toCanvas(document.getElementById('qr-canvas'), url, {width: 250});
+        document.getElementById('cell-status').innerText = '📱 En attente du cell...';
+      });
+      peer.on('connection', (c) => {
+        conn = c;
+        conn.on('open', () => {
+          document.getElementById('cell-status').innerText = '📱 ✅ Cell connecté';
+          updateSlides(); // send current module
+        });
+        conn.on('data', handleCellData);
+        conn.on('close', () => { document.getElementById('cell-status').innerText = '📱 ❌ Déconnecté'; });
+      });
+      // Handle WebRTC Audio from Cell
+      peer.on('call', (call) => {
+        if(panicMode) { call.close(); return; }
+        call.answer();
+        mediaCall = call;
+        call.on('stream', (remoteStream) => {
+          document.getElementById('micro-indicator').style.display = 'block';
+          const audioPlayer = document.getElementById('remote-audio-player');
+          audioPlayer.srcObject = remoteStream;
+          audioPlayer.play();
+          startLaptopTranscription(); // Web Speech API for subtitles
+        });
+      });
+    };
+
+    // LAPTOP ACTIONS (VOTES)
+    let votes = {1: {l:0, r:0}, 2: {l:0, r:0}};
+    function voteAction(voteId, side) {
+      if(panicMode) return;
+      votes[voteId][side === 'left' ? 'l' : 'r']++;
+      const total = votes[voteId].l + votes[voteId].r;
+      const pctL = (votes[voteId].l / total) * 100;
+      const pctR = (votes[voteId].r / total) * 100;
+      
+      if(voteId === 1) {
+        document.getElementById('vote-left').innerText = votes[1].l;
+        document.getElementById('vote-right').innerText = votes[1].r;
+        document.getElementById('bar-left').style.width = pctL + '%';
+        document.getElementById('bar-right').style.width = pctR + '%';
+        document.getElementById('vote-total').innerText = `${total} / 25 votes reçus`;
+      } else {
+        document.getElementById('v2-left').innerText = votes[2].l;
+        document.getElementById('v2-right').innerText = votes[2].r;
+        document.getElementById('b2-left').style.width = pctL + '%';
+        document.getElementById('b2-right').style.width = pctR + '%';
+      }
+    }
+    
+    window.terminerVote = (id) => {
+      let winSide = votes[id].l >= votes[id].r ? 'left' : 'right';
+      let winText = "";
+      if(id === 1) winText = winSide === 'left' ? "POMPIER" : "CHEF DE ROBOTS";
+      if(id === 2) winText = winSide === 'left' ? "ÇA AIDE" : "ÇA FAIT PEUR";
+      
+      // Dim loser, pop winner
+      document.getElementById(`card-${winSide === 'left' ? 'right' : 'left'}-${id}`).style.opacity = '0.3';
+      document.getElementById(`card-${winSide}-${id}`).style.animation = 'winnerScale 3s forwards';
+      
+      const rev = document.getElementById(`winner-reveal-${id}`);
+      document.getElementById(`winner-text-${id}`).innerText = winText;
+      rev.style.display = 'block';
+      rev.style.animation = 'floatUp 4s forwards';
+      
+      confetti({particleCount: 200, spread: 180});
+      playSynth('tada');
+    };
+    
+    function resetVotes() { 
+      votes = {1: {l:0, r:0}, 2: {l:0, r:0}}; 
+      document.getElementById('vote-left').innerText = "0"; document.getElementById('vote-right').innerText = "0";
+      document.getElementById('bar-left').style.width = "0%"; document.getElementById('bar-right').style.width = "0%";
+      document.getElementById('vote-total').innerText = "0 / 25 votes reçus";
+      document.getElementById('v2-left').innerText = "0"; document.getElementById('v2-right').innerText = "0";
+      document.getElementById('b2-left').style.width = "0%"; document.getElementById('b2-right').style.width = "0%";
+      document.getElementById('card-left-1').style.opacity = '1'; document.getElementById('card-right-1').style.opacity = '1';
+      document.getElementById('card-left-2').style.opacity = '1'; document.getElementById('card-right-2').style.opacity = '1';
+      document.getElementById('card-left-1').style.animation = 'none'; document.getElementById('card-right-1').style.animation = 'none';
+      document.getElementById('card-left-2').style.animation = 'none'; document.getElementById('card-right-2').style.animation = 'none';
+      document.getElementById('winner-reveal-1').style.display = 'none'; document.getElementById('winner-reveal-2').style.display = 'none';
+      showToast("Votes réinitialisés !", false);
+    }
+
+    function handleCellData(data) {
+      if(panicMode) return;
+      if(data.type === 'CMD_NAV') {
+        if(data.cmd === 'next') window.nextSlide(); else window.prevSlide();
+      }
+      if(data.type === 'VOTE') {
+        const activeSlide = slides[currentSlide];
+        if(activeSlide.id === 'slide-vote-1') voteAction(1, data.side);
+        if(activeSlide.id === 'slide-vote-2') voteAction(2, data.side);
+      }
+      if(data.type === 'BUZZ') {
+        playSynth('boing'); // Buzzer sound
+        // Flash red
+        const overlay = document.createElement('div');
+        overlay.style.cssText = "position:fixed; top:0;left:0;right:0;bottom:0; background:red; opacity:0.5; z-index:9999; pointer-events:none;";
+        document.body.appendChild(overlay);
+        setTimeout(()=>overlay.remove(), 300);
+        
+        // Show team
+        const activeSlide = slides[currentSlide];
+        const display = activeSlide.querySelector('h1[id^="buzz-display"]');
+        if(display) {
+          display.innerText = `🔔 ${data.teamName} !`;
+          display.style.display = 'block';
+          setTimeout(()=> { display.style.display = 'none'; }, 4000);
+        }
+      }
+      if(data.type === 'BUZZ_SCORE') {
+        if(data.correct) teams[data.teamIdx].score++;
+        updateScoreBanner();
+      }
+      if(data.type === 'PHOTO_TRIGGER') {
+        let count = 3;
+        const cd = document.getElementById('photo-countdown');
+        cd.style.display = 'block'; cd.innerText = count;
+        const i = setInterval(()=> {
+          count--; cd.innerText = count;
+          if(count === 0) { clearInterval(i); cd.style.display='none'; conn.send({type: 'DO_PHOTO'}); }
+        }, 1000);
+      }
+      if(data.type === 'PHOTO_DATA') {
+        document.getElementById('photo-container').style.display = 'block';
+        document.getElementById('captured-photo').src = data.image;
+        document.getElementById('photo-actions').style.display = 'flex';
+      }
+    }
+
+    // Applaudimètre
+    let audioCtxApp, analyserApp, micStreamApp, animFrameApp;
+    window.startApplause = async () => {
+      if(panicMode) return;
+      document.getElementById('btn-applause').style.display = 'none';
+      document.getElementById('btn-stop-applause').style.display = 'inline-block';
+      micStreamApp = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      audioCtxApp = new (window.AudioContext || window.webkitAudioContext)();
+      analyserApp = audioCtxApp.createAnalyser(); analyserApp.fftSize = 256;
+      const source = audioCtxApp.createMediaStreamSource(micStreamApp); source.connect(analyserApp);
+      const dataArray = new Uint8Array(analyserApp.frequencyBinCount);
+      function draw() {
+        if(!analyserApp) return;
+        animFrameApp = requestAnimationFrame(draw);
+        analyserApp.getByteFrequencyData(dataArray);
+        let sum = 0; for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
+        let avg = sum / dataArray.length; let pct = Math.min(100, (avg / 128) * 100);
+        document.getElementById('vol-bar').style.height = pct + '%';
+        if(pct > 85) { stopApplause(); confetti({particleCount: 200, spread: 180}); }
+      }
+      draw();
+    };
+    window.stopApplause = () => {
+      if(animFrameApp) cancelAnimationFrame(animFrameApp);
+      if(micStreamApp) micStreamApp.getTracks().forEach(t=>t.stop());
+      if(audioCtxApp) audioCtxApp.close();
+      analyserApp = null;
+      document.getElementById('btn-applause').style.display = 'inline-block';
+      document.getElementById('btn-stop-applause').style.display = 'none';
+    };
+
+    // Synth
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+    function playSynth(type) {
+      if(!audioCtx) audioCtx = new AudioContext();
+      if(audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      if(type === 'tada') {
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5); osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+      } else if (type === 'boing') {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.4); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4); osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+      }
+    }
+
+    // Chatbot
+    window.askAI = async () => {
+      if(panicMode || !checkAPIKey()) return;
+      const input = document.getElementById('chat-input').value;
+      const resDiv = document.getElementById('chat-response');
+      if(!input) return;
+      resDiv.innerText = "L'IA réfléchit... 🤖";
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'},
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514', max_tokens: 150,
+            system: "Tu parles à un enfant de 9-10 ans dans une classe au Québec. Réponds en québécois, 2-3 phrases amusantes. Pas de jargon. Utilise des emojis.",
+            messages: [{role: 'user', content: input}]
+          })
+        });
+        const data = await res.json();
+        typeWriter("🤖 " + data.content[0].text, resDiv);
+      } catch(e) { resDiv.innerText = "❌ Oups, le signal est coupé !"; }
+    };
+    function typeWriter(txt, el) { el.innerText = ""; let i=0; function type(){ if(i<txt.length){el.innerHTML+=txt.charAt(i); i++; setTimeout(type,20);}} type(); }
+
+    // Photo Magique
+    let faceFilterIndex = 0;
+    window.applyFilter = () => {
+      const filters = ['grayscale(80%) contrast(150%) hue-rotate(180deg)', 'saturate(200%) contrast(120%)', 'sepia(80%) contrast(110%)', 'hue-rotate(360deg)'];
+      document.getElementById('captured-photo').style.filter = filters[faceFilterIndex % filters.length];
+      faceFilterIndex++;
+    };
+    window.detectFaces = async () => {
+      if(!window.faceapi || !faceapi.nets.tinyFaceDetector.isLoaded) {
+        await faceapi.nets.tinyFaceDetector.loadFromUri('./models');
+      }
+      const img = document.getElementById('captured-photo');
+      const detections = await faceapi.detectAllFaces(img, new faceapi.TinyFaceDetectorOptions());
+      const overlay = document.getElementById('photo-overlay');
+      overlay.innerHTML = '';
+      const displaySize = {width: img.width, height: img.height};
+      const resized = faceapi.resizeResults(detections, displaySize);
+      resized.forEach((d, i) => {
+         setTimeout(() => {
+           const crown = document.createElement('div');
+           crown.innerText = '👑'; crown.style.position = 'absolute'; crown.style.fontSize = (d.box.width) + 'px';
+           crown.style.left = d.box.x + 'px'; crown.style.top = (d.box.y - d.box.height) + 'px';
+           overlay.appendChild(crown);
+         }, i * 200); // 200ms sequential WOW effect
+      });
+    };
+    window.analyzeVision = async () => {
+      if(!checkAPIKey()) return;
+      const resDiv = document.getElementById('vision-response');
+      resDiv.innerText = "L'IA analyse la classe... 🧠👀";
+      const img = document.getElementById('captured-photo');
+      const b64 = img.src.split(',')[1];
+      try {
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'},
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514', max_tokens: 300,
+            system: "Tu regardes une photo de classe d'enfants de 9-10 ans au Québec. Décris l'ambiance, compte les personnes de façon amusante. Complimente globalement. JAMAIS de commentaires sur l'apparence physique (poids, traits) - uniquement ambiance, couleurs, énergie, sourires.",
+            messages: [{role: 'user', content: [{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}}, {"type": "text", "text": "Décris cette photo magique."}] }]
+          })
+        });
+        const data = await res.json();
+        typeWriter("✨ " + data.content[0].text, resDiv);
+      } catch(e) { resDiv.innerText = "❌ L'IA a cligné des yeux (Erreur réseau)."; }
+    };
+    window.trashPhoto = () => {
+      document.getElementById('photo-container').style.display = 'none';
+      document.getElementById('photo-actions').style.display = 'none';
+      document.getElementById('vision-response').innerText = '';
+      document.getElementById('photo-overlay').innerHTML = '';
+      document.getElementById('captured-photo').style.filter = 'none';
+    };
+
+    // Camera Scanner
+    let camStream, faceInterval;
+    window.startCam = async () => {
+      if(panicMode) return;
+      await faceapi.nets.tinyFaceDetector.loadFromUri('./models');
+      camStream = await navigator.mediaDevices.getUserMedia({video: true});
+      const video = document.getElementById('video-cam'); video.srcObject = camStream;
+      document.getElementById('btn-cam').style.display = 'none'; document.getElementById('btn-stop-cam').style.display = 'inline-block';
+      video.onplay = () => {
+        const canvas = faceapi.createCanvasFromMedia(video);
+        document.getElementById('face-canvas-container').innerHTML = ""; document.getElementById('face-canvas-container').append(canvas);
+        const displaySize = {width: video.width, height: video.height}; faceapi.matchDimensions(canvas, displaySize);
+        faceInterval = setInterval(async () => {
+          if(panicMode) return;
+          const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+          const resized = faceapi.resizeResults(detections, displaySize);
+          const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+          resized.forEach(d => { ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 4; ctx.strokeRect(d.box.x, d.box.y, d.box.width, d.box.height); });
+          document.getElementById('face-count').innerText = `🤖 ${detections.length} HUMAINS DÉTECTÉS`;
+        }, 500);
+      };
+    };
+    window.stopCam = () => {
+      if(camStream) { camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+      clearInterval(faceInterval); document.getElementById('btn-cam').style.display = 'inline-block'; document.getElementById('btn-stop-cam').style.display = 'none';
+      const v = document.getElementById('video-cam'); if(v) v.srcObject = null;
+    };
+
+    // WebRTC Subtitles
+    let transcriptRec;
+    function startLaptopTranscription() {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if(SpeechRec && !panicMode) {
+        transcriptRec = new SpeechRec(); transcriptRec.continuous = true; transcriptRec.lang = 'fr-CA'; transcriptRec.interimResults = true;
+        const sub = document.getElementById('subtitle-bar'); sub.style.display = 'block';
+        transcriptRec.onresult = (e) => {
+          let text = ""; for(let i=e.resultIndex; i<e.results.length; i++) text += e.results[i][0].transcript;
+          sub.innerText = "🎤 " + text;
+        };
+        transcriptRec.start();
+      }
+    }
+    function stopLaptopWebRTC() {
+      if(mediaCall) { mediaCall.close(); mediaCall = null; }
+      if(transcriptRec) { transcriptRec.stop(); transcriptRec = null; }
+      document.getElementById('subtitle-bar').style.display = 'none';
+      document.getElementById('micro-indicator').style.display = 'none';
+    }
+
+    // Magic Voice
+    let magicRec, magicVoiceActive = false;
+    window.toggleMagicVoice = () => {
+      if(panicMode) return;
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if(!magicRec && SpeechRec) {
+        magicRec = new SpeechRec(); magicRec.continuous = true; magicRec.lang = 'fr-CA';
+        magicRec.onresult = (e) => {
+          const t = e.results[e.results.length-1][0].transcript.toLowerCase();
+          if(t.includes('robot')) showMagic('🤖');
+          else if(t.includes('vis') || t.includes('boulon')) showMagic('🔩');
+          else if(t.includes('magie')) { showMagic('🌈'); confetti(); }
+          else if(t.includes('intelligence') || t.includes('ia')) showMagic('✨');
+        };
+        magicRec.onend = () => { if(magicVoiceActive && !panicMode) magicRec.start(); };
+      }
+      magicVoiceActive = !magicVoiceActive;
+      const btn = document.getElementById('btn-magic-voice');
+      if(magicVoiceActive) { magicRec.start(); btn.style.background = '#2ecc71'; }
+      else { magicRec.stop(); btn.style.background = 'var(--accent-red)'; }
+    };
+    function showMagic(em) {
+      const o = document.getElementById('magic-overlay'); const d = document.createElement('div');
+      d.innerText = em; d.style.position = 'absolute'; d.style.left = (Math.random()*80+10)+'%'; d.style.bottom='-30%'; d.style.animation='floatUp 3s forwards';
+      o.appendChild(d); setTimeout(()=>d.remove(), 3000);
+    }
+
+    // Test Buttons
+    window.testMic = () => { navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{ document.getElementById('test-mic').style.background='green'; document.getElementById('test-mic').innerText='✅ MIC OK'; s.getTracks().forEach(t=>t.stop()); }).catch(()=>document.getElementById('test-mic').style.background='red'); };
+    window.testCam = () => { navigator.mediaDevices.getUserMedia({video:true}).then(s=>{ document.getElementById('test-cam').style.background='green'; document.getElementById('test-cam').innerText='✅ CAM OK'; s.getTracks().forEach(t=>t.stop()); }).catch(()=>document.getElementById('test-cam').style.background='red'); };
+    window.testInternet = () => { fetch('https://api.anthropic.com', {mode:'no-cors'}).then(()=>{ document.getElementById('test-net').style.background='green'; document.getElementById('test-net').innerText='✅ API OK'; }).catch(()=>{ document.getElementById('test-net').style.background='red'; }); };
+
+    // Init Laptop
+    updateSlides();
+  } 
+
+  // ==========================================
+  // REMOTE VIEW LOGIC (CELL)
+  // ==========================================
+  else {
+    document.getElementById('laptop-view').style.display = 'none';
+    document.getElementById('remote-view').style.display = 'flex';
+    
+    // Connect to Laptop
+    peer = new Peer();
+    peer.on('open', () => {
+      conn = peer.connect(remoteId);
+      conn.on('open', () => { showToast("✅ Connecté au Laptop", false); });
+      conn.on('data', (data) => {
+        if(data.type === 'PANIC') {
+           document.body.innerHTML = "<h1 style='color:red; margin-top:50vh; transform:translateY(-50%);'>MODE PANIQUE - ÉCRAN COUPÉ</h1>";
+        }
+        if(data.type === 'SWITCH_MODULE') {
+           document.querySelectorAll('.remote-module').forEach(m => m.style.display = 'none');
+           const modId = 'mod-' + data.module;
+           if(document.getElementById(modId)) document.getElementById(modId).style.display = 'flex';
+           else document.getElementById('mod-nav').style.display = 'flex';
+           
+           if(data.module === 'buzzer') {
+             document.getElementById('buzz-main').style.display = 'block';
+             document.getElementById('buzz-judge').style.display = 'none';
+             if(teams[currentTeamIdx]) document.getElementById('cell-team-name').innerText = teams[currentTeamIdx].name;
+           }
+        }
+        if(data.type === 'DO_PHOTO') executePhotoCapture();
+      });
+      conn.on('close', () => showToast("❌ Déconnecté"));
+    });
+
+    window.sendCmd = (cmd) => { if(conn && conn.open) conn.send({type: 'CMD_NAV', cmd}); };
+    
+    // Swipe logic
+    let touchStartX = 0, lastSwipe = 0;
+    const swipeArea = document.getElementById('swipe-area');
+    swipeArea.addEventListener('touchstart', e => { if(e.touches.length === 1) touchStartX = e.changedTouches[0].screenX; }, {passive:true});
+    swipeArea.addEventListener('touchend', e => {
+      if(e.changedTouches.length > 1) return; // disable multi touch
+      let touchEndX = e.changedTouches[0].screenX;
+      let now = Date.now();
+      if(now - lastSwipe < 500) return; // Anti-spam
+      
+      if(touchEndX < touchStartX - 100) { sendVote('left'); lastSwipe = now; } // left
+      if(touchEndX > touchStartX + 100) { sendVote('right'); lastSwipe = now; } // right
+    }, {passive:true});
+    function sendVote(side) {
+      if(conn && conn.open) conn.send({type: 'VOTE', side});
+      showToast("✅ Vote envoyé !", false);
+    }
+
+    // Buzzer Logic
+    window.sendBuzz = () => {
+      if(conn && conn.open) conn.send({type: 'BUZZ', teamName: teams[currentTeamIdx] ? teams[currentTeamIdx].name : "ÉQUIPE"});
+      document.getElementById('buzz-main').style.display = 'none';
+      document.getElementById('buzz-judge').style.display = 'flex';
+    };
+    window.nextTeam = () => {
+      currentTeamIdx = (currentTeamIdx + 1) % teams.length;
+      if(teams[currentTeamIdx]) document.getElementById('cell-team-name').innerText = teams[currentTeamIdx].name;
+    };
+    window.resolveBuzz = (correct) => {
+      if(conn && conn.open) conn.send({type: 'BUZZ_SCORE', teamIdx: currentTeamIdx, correct: (correct === 'yes')});
+      document.getElementById('buzz-main').style.display = 'block';
+      document.getElementById('buzz-judge').style.display = 'none';
+    };
+
+    // Photo Module
+    let cellVideoStream;
+    async function initCellVideo() {
+      if(!cellVideoStream) {
+        try { cellVideoStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}}); document.getElementById('cell-video').srcObject = cellVideoStream; } catch(e){}
+      }
+    }
+    window.takeCellPhoto = () => {
+      initCellVideo();
+      if(conn && conn.open) conn.send({type: 'PHOTO_TRIGGER'});
+    };
+    function executePhotoCapture() {
+      const v = document.getElementById('cell-video');
+      const c = document.getElementById('cell-canvas');
+      c.width = v.videoWidth; c.height = v.videoHeight;
+      c.getContext('2d').drawImage(v, 0, 0);
+      const data = c.toDataURL('image/jpeg', 0.8);
+      if(conn && conn.open) conn.send({type: 'PHOTO_DATA', image: data});
+      showToast("📸 Photo envoyée !", false);
+    }
+
+    // Micro Module
+    let cellMicStream;
+    window.startCellMic = async () => {
+      try {
+        cellMicStream = await navigator.mediaDevices.getUserMedia({audio: true});
+        mediaCall = peer.call(remoteId, cellMicStream);
+        document.getElementById('btn-start-mic').style.display = 'none';
+        document.getElementById('btn-stop-mic').style.display = 'block';
+      } catch(e) { alert("Erreur micro"); }
+    };
+    window.stopCellMic = () => {
+      if(cellMicStream) cellMicStream.getTracks().forEach(t=>t.stop());
+      if(mediaCall) mediaCall.close();
+      document.getElementById('btn-start-mic').style.display = 'block';
+      document.getElementById('btn-stop-mic').style.display = 'none';
+    };
+  }
+</script>
+
+</body>
+</html>
