@@ -165,18 +165,23 @@ PEERJS : Pour la télécommande cellulaire.
     
     <!-- 3. Vote Swipe -->
     <div class="slide" data-module="swipe" id="slide-vote-1">
-      <h2>🗳️ VOTE PAR SWIPE !</h2>
-      <p>Prenez le cell et glissez vers la gauche ou la droite !</p>
-      <div style="display: flex; justify-content: center; gap: 50px; width: 90%; margin-top: 30px;">
-        <div class="vote-card" id="card-left-1">
-          <div style="font-size: 4em;">🚒</div><h2>Pompier</h2>
-          <h1 id="vote-left" style="font-size: 5em; margin: 0;">0</h1>
-          <div class="vote-bar-container"><div id="bar-left" class="vote-bar"></div></div>
+      <h2>🗳️ DEVINEZ MON MÉTIER !</h2>
+      <p>Prenez le cell, glissez ⬅️➡️ pour choisir, puis glissez ⬆️ pour voter !</p>
+      <div style="display: flex; justify-content: center; gap: 30px; width: 90%; margin-top: 30px;">
+        <div class="vote-card" id="card-v1-0">
+          <div style="font-size: 4em;">🧑‍🏫</div><h2>Professeur</h2>
+          <h1 id="v1-count-0" style="font-size: 4em; margin: 0;">0</h1>
+          <div class="vote-bar-container"><div id="v1-bar-0" class="vote-bar"></div></div>
         </div>
-        <div class="vote-card" id="card-right-1">
+        <div class="vote-card" id="card-v1-1">
+          <div style="font-size: 4em;">👨‍🍳</div><h2>Cuisinier</h2>
+          <h1 id="v1-count-1" style="font-size: 4em; margin: 0;">0</h1>
+          <div class="vote-bar-container"><div id="v1-bar-1" class="vote-bar" style="background: var(--accent-yellow);"></div></div>
+        </div>
+        <div class="vote-card" id="card-v1-2">
           <div style="font-size: 4em;">🤖</div><h2>Chef de Robots</h2>
-          <h1 id="vote-right" style="font-size: 5em; margin: 0;">0</h1>
-          <div class="vote-bar-container"><div id="bar-right" class="vote-bar" style="background: var(--accent-red);"></div></div>
+          <h1 id="v1-count-2" style="font-size: 4em; margin: 0;">0</h1>
+          <div class="vote-bar-container"><div id="v1-bar-2" class="vote-bar" style="background: var(--accent-red);"></div></div>
         </div>
       </div>
       <p id="vote-total" style="color: var(--accent-yellow); font-weight: bold; margin-top: 20px;">0 / 25 votes reçus</p>
@@ -356,12 +361,18 @@ PEERJS : Pour la télécommande cellulaire.
   </div>
 
   <div id="mod-swipe" class="remote-module">
-    <h2>VOTE !<br><span style="font-size: 0.5em; color: #f1c40f;">Glisse vers la gauche ou la droite</span></h2>
-    <div id="swipe-area" style="flex-grow: 1; width: 100%; border: 2px dashed #555; border-radius: 20px; display: flex; justify-content: center; align-items: center; font-size: 2em; color: #555;">
-      (Swipe ici)
+    <h2 id="swipe-title">VOTE !</h2>
+    <div id="swipe-area" style="flex-grow: 1; width: 100%; border: 2px dashed #555; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; user-select: none;">
+      <div id="swipe-choice-emoji" style="font-size: 6em; transition: transform 0.3s;"></div>
+      <div id="swipe-choice-name" style="font-size: 2.5em; font-weight: bold; margin-top: 10px; transition: transform 0.3s;"></div>
+      <div style="position: absolute; bottom: 20px; color: #f1c40f; font-size: 1.2em; font-weight: bold;" id="swipe-hint">⬅️ Glisse pour choisir ➡️<br>⬆️ Glisse vers le haut pour VOTER</div>
     </div>
-    <div id="swipe-left-anim">⬅️</div>
-    <div id="swipe-right-anim">➡️</div>
+    <div id="swipe-confirmed" style="display:none; flex-grow:1; width:100%; flex-direction:column; justify-content:center; align-items:center;">
+      <div style="font-size: 5em;">✅</div>
+      <h2 style="color: #2ecc71;">Vote envoyé !</h2>
+      <p style="font-size: 1.5em; color: #f1c40f; margin-top: 20px;">👉 Passe le cell au suivant !</p>
+      <button onclick="resetSwipeVote()" style="margin-top: 30px; background: #34495e; color: white; padding: 15px 30px; font-size: 1.5em; border: none; border-radius: 10px;">Suivant ➡️</button>
+    </div>
   </div>
 
   <div id="mod-buzzer" class="remote-module">
@@ -529,21 +540,23 @@ PEERJS : Pour la télécommande cellulaire.
     };
 
     // LAPTOP ACTIONS (VOTES)
-    let votes = {1: {l:0, r:0}, 2: {l:0, r:0}};
-    function voteAction(voteId, side) {
+    const voteChoices1 = ['🧑‍🏫 Professeur', '👨‍🍳 Cuisinier', '🤖 Chef de Robots'];
+    let votes = {1: [0, 0, 0], 2: {l:0, r:0}};
+    function voteAction(voteId, choice) {
       if(panicMode) return;
-      votes[voteId][side === 'left' ? 'l' : 'r']++;
-      const total = votes[voteId].l + votes[voteId].r;
-      const pctL = (votes[voteId].l / total) * 100;
-      const pctR = (votes[voteId].r / total) * 100;
-      
       if(voteId === 1) {
-        document.getElementById('vote-left').innerText = votes[1].l;
-        document.getElementById('vote-right').innerText = votes[1].r;
-        document.getElementById('bar-left').style.width = pctL + '%';
-        document.getElementById('bar-right').style.width = pctR + '%';
-        document.getElementById('vote-total').innerText = `${total} / 25 votes reçus`;
+        votes[1][choice]++;
+        const total = votes[1].reduce((a,b) => a+b, 0);
+        for(let i = 0; i < 3; i++) {
+          document.getElementById(`v1-count-${i}`).innerText = votes[1][i];
+          document.getElementById(`v1-bar-${i}`).style.width = (total > 0 ? (votes[1][i] / total) * 100 : 0) + '%';
+        }
+        document.getElementById('vote-total').innerText = `${total} / 25 votes re\u00e7us`;
       } else {
+        votes[voteId][choice === 'left' ? 'l' : 'r']++;
+        const total = votes[2].l + votes[2].r;
+        const pctL = (votes[2].l / total) * 100;
+        const pctR = (votes[2].r / total) * 100;
         document.getElementById('v2-left').innerText = votes[2].l;
         document.getElementById('v2-right').innerText = votes[2].r;
         document.getElementById('b2-left').style.width = pctL + '%';
@@ -552,37 +565,43 @@ PEERJS : Pour la télécommande cellulaire.
     }
     
     window.terminerVote = (id) => {
-      let winSide = votes[id].l >= votes[id].r ? 'left' : 'right';
-      let winText = "";
-      if(id === 1) winText = winSide === 'left' ? "POMPIER" : "CHEF DE ROBOTS";
-      if(id === 2) winText = winSide === 'left' ? "ÇA AIDE" : "ÇA FAIT PEUR";
-      
-      // Dim loser, pop winner
-      document.getElementById(`card-${winSide === 'left' ? 'right' : 'left'}-${id}`).style.opacity = '0.3';
-      document.getElementById(`card-${winSide}-${id}`).style.animation = 'winnerScale 3s forwards';
-      
+      if(id === 1) {
+        const maxIdx = votes[1].indexOf(Math.max(...votes[1]));
+        const names = ['PROFESSEUR', 'CUISINIER', 'CHEF DE ROBOTS'];
+        for(let i = 0; i < 3; i++) {
+          document.getElementById(`card-v1-${i}`).style.opacity = (i === maxIdx) ? '1' : '0.3';
+          if(i === maxIdx) document.getElementById(`card-v1-${i}`).style.animation = 'winnerScale 3s forwards';
+        }
+        document.getElementById('winner-text-1').innerText = names[maxIdx];
+      } else {
+        let winSide = votes[2].l >= votes[2].r ? 'left' : 'right';
+        let winText = winSide === 'left' ? '\u00c7A AIDE' : '\u00c7A FAIT PEUR';
+        document.getElementById(`card-${winSide === 'left' ? 'right' : 'left'}-2`).style.opacity = '0.3';
+        document.getElementById(`card-${winSide}-2`).style.animation = 'winnerScale 3s forwards';
+        document.getElementById('winner-text-2').innerText = winText;
+      }
       const rev = document.getElementById(`winner-reveal-${id}`);
-      document.getElementById(`winner-text-${id}`).innerText = winText;
       rev.style.display = 'block';
       rev.style.animation = 'floatUp 4s forwards';
-      
       confetti({particleCount: 200, spread: 180});
       playSynth('tada');
     };
     
     function resetVotes() { 
-      votes = {1: {l:0, r:0}, 2: {l:0, r:0}}; 
-      document.getElementById('vote-left').innerText = "0"; document.getElementById('vote-right').innerText = "0";
-      document.getElementById('bar-left').style.width = "0%"; document.getElementById('bar-right').style.width = "0%";
-      document.getElementById('vote-total').innerText = "0 / 25 votes reçus";
-      document.getElementById('v2-left').innerText = "0"; document.getElementById('v2-right').innerText = "0";
-      document.getElementById('b2-left').style.width = "0%"; document.getElementById('b2-right').style.width = "0%";
-      document.getElementById('card-left-1').style.opacity = '1'; document.getElementById('card-right-1').style.opacity = '1';
+      votes = {1: [0, 0, 0], 2: {l:0, r:0}};
+      for(let i = 0; i < 3; i++) {
+        document.getElementById(`v1-count-${i}`).innerText = '0';
+        document.getElementById(`v1-bar-${i}`).style.width = '0%';
+        document.getElementById(`card-v1-${i}`).style.opacity = '1';
+        document.getElementById(`card-v1-${i}`).style.animation = 'none';
+      }
+      document.getElementById('vote-total').innerText = '0 / 25 votes re\u00e7us';
+      document.getElementById('v2-left').innerText = '0'; document.getElementById('v2-right').innerText = '0';
+      document.getElementById('b2-left').style.width = '0%'; document.getElementById('b2-right').style.width = '0%';
       document.getElementById('card-left-2').style.opacity = '1'; document.getElementById('card-right-2').style.opacity = '1';
-      document.getElementById('card-left-1').style.animation = 'none'; document.getElementById('card-right-1').style.animation = 'none';
       document.getElementById('card-left-2').style.animation = 'none'; document.getElementById('card-right-2').style.animation = 'none';
       document.getElementById('winner-reveal-1').style.display = 'none'; document.getElementById('winner-reveal-2').style.display = 'none';
-      showToast("Votes réinitialisés !", false);
+      showToast('Votes r\u00e9initialis\u00e9s !', false);
     }
 
     function handleCellData(data) {
@@ -592,7 +611,7 @@ PEERJS : Pour la télécommande cellulaire.
       }
       if(data.type === 'VOTE') {
         const activeSlide = slides[currentSlide];
-        if(activeSlide.id === 'slide-vote-1') voteAction(1, data.side);
+        if(activeSlide.id === 'slide-vote-1') voteAction(1, data.choice);
         if(activeSlide.id === 'slide-vote-2') voteAction(2, data.side);
       }
       if(data.type === 'BUZZ') {
@@ -866,22 +885,57 @@ PEERJS : Pour la télécommande cellulaire.
 
     window.sendCmd = (cmd) => { if(conn && conn.open) conn.send({type: 'CMD_NAV', cmd}); };
     
-    // Swipe logic
-    let touchStartX = 0, lastSwipe = 0;
+    // Swipe logic - carousel with 3 choices + swipe up to confirm
+    const swipeChoices = [{emoji: '🧑‍🏫', name: 'Professeur'}, {emoji: '👨‍🍳', name: 'Cuisinier'}, {emoji: '🤖', name: 'Chef de Robots'}];
+    let swipeIdx = 0;
+    let touchStartX = 0, touchStartY = 0, lastSwipe = 0;
+    
+    function updateSwipeDisplay() {
+      document.getElementById('swipe-choice-emoji').innerText = swipeChoices[swipeIdx].emoji;
+      document.getElementById('swipe-choice-name').innerText = swipeChoices[swipeIdx].name;
+    }
+    updateSwipeDisplay();
+    
+    window.resetSwipeVote = () => {
+      document.getElementById('swipe-confirmed').style.display = 'none';
+      document.getElementById('swipe-area').style.display = 'flex';
+      document.getElementById('swipe-hint').style.display = 'block';
+      swipeIdx = 0;
+      updateSwipeDisplay();
+    };
+
     const swipeArea = document.getElementById('swipe-area');
-    swipeArea.addEventListener('touchstart', e => { if(e.touches.length === 1) touchStartX = e.changedTouches[0].screenX; }, {passive:true});
+    swipeArea.addEventListener('touchstart', e => {
+      if(e.touches.length === 1) {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+      }
+    }, {passive:true});
     swipeArea.addEventListener('touchend', e => {
-      if(e.changedTouches.length > 1) return; // disable multi touch
+      if(e.changedTouches.length > 1) return;
       let touchEndX = e.changedTouches[0].screenX;
+      let touchEndY = e.changedTouches[0].screenY;
       let now = Date.now();
-      if(now - lastSwipe < 500) return; // Anti-spam
+      if(now - lastSwipe < 400) return;
       
-      if(touchEndX < touchStartX - 100) { sendVote('left'); lastSwipe = now; } // left
-      if(touchEndX > touchStartX + 100) { sendVote('right'); lastSwipe = now; } // right
+      let dx = touchEndX - touchStartX;
+      let dy = touchEndY - touchStartY;
+      
+      // Swipe UP = confirm vote
+      if(dy < -80 && Math.abs(dx) < Math.abs(dy)) {
+        if(conn && conn.open) conn.send({type: 'VOTE', choice: swipeIdx});
+        document.getElementById('swipe-area').style.display = 'none';
+        document.getElementById('swipe-confirmed').style.display = 'flex';
+        lastSwipe = now;
+        return;
+      }
+      // Swipe LEFT/RIGHT = browse choices
+      if(dx < -80) { swipeIdx = (swipeIdx + 1) % swipeChoices.length; updateSwipeDisplay(); lastSwipe = now; }
+      if(dx > 80) { swipeIdx = (swipeIdx - 1 + swipeChoices.length) % swipeChoices.length; updateSwipeDisplay(); lastSwipe = now; }
     }, {passive:true});
     function sendVote(side) {
       if(conn && conn.open) conn.send({type: 'VOTE', side});
-      showToast("✅ Vote envoyé !", false);
+      showToast('✅ Vote envoyé !', false);
     }
 
     // Buzzer Logic
