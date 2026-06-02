@@ -129,7 +129,7 @@ PEERJS : Pour la télécommande cellulaire.
 <div id="laptop-view">
   
   <!-- Overlays obligatoires de la V3 -->
-  <button id="btn-magic-voice" style="position:absolute; top:20px; right:20px; z-index:100; font-size: 1em; padding: 10px; background: var(--accent-red);" onclick="toggleMagicVoice()">🎙️ Mode magie</button>
+  <button id="btn-magic-voice" style="position:absolute; top:20px; right:20px; z-index:100; font-size: 1em; padding: 10px; background: var(--accent-red); display:none;" onclick="toggleMagicVoice()">🎙️ Mode magie</button>
   <div id="magic-overlay"></div>
   
   <div id="cell-status">📱 En attente...</div>
@@ -150,7 +150,7 @@ PEERJS : Pour la télécommande cellulaire.
     <div class="slide active">
       <div class="emoji-giant">👋</div>
       <h1>Bonjour! Je m'appelle Louis</h1>
-      <h2 style="color: var(--accent-green);">(Le fier beau-papa d'Tony Prime !)</h2>
+      <h2 style="color: var(--accent-green);">(Le fier beau-papa d'Anthony !)</h2>
       <h2>Devinez c'est quoi mon métier?</h2>
       <div style="display: flex; gap: 20px; margin-top: 20px;">
         <button onclick="configurerCleIA()" style="background: var(--accent-blue);">🔑 Configurer clé IA</button>
@@ -351,10 +351,10 @@ PEERJS : Pour la télécommande cellulaire.
 
   </div>
 
-  <div id="controls">
-    <button id="prevBtn">⬅️ Précédent</button>
+  <div id="controls" style="justify-content: center;">
+    <button id="prevBtn" style="display:none;">⬅️ Précédent</button>
     <div id="counter">1 / 32</div>
-    <button id="nextBtn">Suivant ➡️</button>
+    <button id="nextBtn" style="display:none;">Suivant ➡️</button>
   </div>
 </div>
 
@@ -879,6 +879,8 @@ PEERJS : Pour la télécommande cellulaire.
 
     // Init Laptop
     updateSlides();
+    // Auto-start Magic Voice mode
+    setTimeout(() => { if(!panicMode) toggleMagicVoice(); }, 1000);
   } 
 
   // ==========================================
