@@ -3,8 +3,13 @@
 Présentation HTML interactive pour le Jour des métiers à l'école.
 Conçue pour des enfants de 9-10 ans.
 
-## Lancement
-Ouvrir `index.html` via GitHub Pages.
+## 🚀 Lancement
+
+**🔗 Lien direct :** https://louischarlesbouchard-stack.github.io/Semaine-des-metiers/
+
+**Ou** double-cliquer sur `Lancer Présentation.url` dans le dossier.
+
+> ⚠️ Ne PAS ouvrir `index.html` directement — le QR code cellulaire ne fonctionnera pas.
 
 ## Fonctionnalités
 - Applaudimètre micro
