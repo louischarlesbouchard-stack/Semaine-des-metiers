@@ -191,7 +191,13 @@ PEERJS : Pour la télécommande cellulaire.
 
 
     <!-- 5-12: Storytelling enrichi -->
-    <div class="slide"><div class="emoji-giant">🏗️</div><h2>Je travaille pour un grand distributeur industriel</h2><p>C'est comme un immense magasin de jouets... mais pour les compagnies qui construisent des choses !</p></div>
+    <div class="slide" id="slide-video">
+      <h2>🏗️ Je travaille pour un grand distributeur industriel</h2>
+      <p>C'est comme un immense magasin de jouets... mais pour les compagnies qui construisent des choses !</p>
+      <video id="video-corp" controls style="width: 80%; max-height: 55vh; border-radius: 15px; border: 3px solid var(--accent-yellow); margin-top: 15px; background: #000;">
+        <source src="MLemieux_FINAL_30s.mp4" type="video/mp4">
+      </video>
+    </div>
     <div class="slide"><h2>Qu'est-ce qu'on vend?</h2>
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 85%; margin-top: 15px;">
         <div style="background: rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; text-align: center;">
@@ -512,6 +518,9 @@ PEERJS : Pour la télécommande cellulaire.
       document.getElementById('test-tools').style.display = (currentSlide === 0) ? 'flex' : 'none';
       document.getElementById('cell-status').style.display = (currentSlide === 0) ? 'block' : 'none';
 
+      // Auto-pause video when leaving slide
+      const corpVideo = document.getElementById('video-corp');
+      if(activeSlide.id !== 'slide-video' && corpVideo) { corpVideo.pause(); corpVideo.currentTime = 0; }
       
       if(currentSlide === 10 && !panicMode) playSynth('tada'); // slide secret
     }
@@ -567,17 +576,46 @@ PEERJS : Pour la télécommande cellulaire.
         conn.on('data', handleCellData);
         conn.on('close', () => { document.getElementById('cell-status').innerText = '📱 ❌ Déconnecté'; });
       });
-      // Handle WebRTC Audio from Cell
+      // Handle WebRTC Media Call from Cell (audio or video)
       peer.on('call', (call) => {
         if(panicMode) { call.close(); return; }
         call.answer();
         mediaCall = call;
         call.on('stream', (remoteStream) => {
-          document.getElementById('micro-indicator').style.display = 'block';
-          const audioPlayer = document.getElementById('remote-audio-player');
-          audioPlayer.srcObject = remoteStream;
-          audioPlayer.play();
-          startLaptopTranscription(); // Web Speech API for subtitles
+          // Check if video track exists
+          const videoTracks = remoteStream.getVideoTracks();
+          if(videoTracks.length > 0) {
+            // Video stream from cell camera → face detection
+            const video = document.getElementById('video-cam');
+            video.srcObject = remoteStream;
+            video.style.transform = 'none'; // no mirror for cell cam
+            document.getElementById('face-canvas-container').style.transform = 'none';
+            document.getElementById('btn-cam').style.display = 'none';
+            document.getElementById('btn-stop-cam').style.display = 'inline-block';
+            video.onplay = async () => {
+              await faceapi.nets.tinyFaceDetector.loadFromUri('./models');
+              const canvas = faceapi.createCanvasFromMedia(video);
+              document.getElementById('face-canvas-container').innerHTML = '';
+              document.getElementById('face-canvas-container').append(canvas);
+              const displaySize = {width: video.videoWidth, height: video.videoHeight};
+              faceapi.matchDimensions(canvas, displaySize);
+              faceInterval = setInterval(async () => {
+                if(panicMode) return;
+                const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+                const resized = faceapi.resizeResults(detections, displaySize);
+                const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+                resized.forEach(d => { ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 4; ctx.strokeRect(d.box.x, d.box.y, d.box.width, d.box.height); });
+                document.getElementById('face-count').innerText = `\u{1F916} ${detections.length} HUMAINS D\u00c9TECT\u00c9S`;
+              }, 500);
+            };
+          } else {
+            // Audio-only stream from cell mic
+            document.getElementById('micro-indicator').style.display = 'block';
+            const audioPlayer = document.getElementById('remote-audio-player');
+            audioPlayer.srcObject = remoteStream;
+            audioPlayer.play();
+            startLaptopTranscription();
+          }
         });
       });
     };
@@ -810,32 +848,25 @@ PEERJS : Pour la télécommande cellulaire.
       document.getElementById('captured-photo').style.filter = 'none';
     };
 
-    // Camera Scanner
+    // Camera Scanner — uses cell camera via PeerJS
     let camStream, faceInterval;
     window.startCam = async () => {
       if(panicMode) return;
-      await faceapi.nets.tinyFaceDetector.loadFromUri('./models');
-      camStream = await navigator.mediaDevices.getUserMedia({video: true});
-      const video = document.getElementById('video-cam'); video.srcObject = camStream;
-      document.getElementById('btn-cam').style.display = 'none'; document.getElementById('btn-stop-cam').style.display = 'inline-block';
-      video.onplay = () => {
-        const canvas = faceapi.createCanvasFromMedia(video);
-        document.getElementById('face-canvas-container').innerHTML = ""; document.getElementById('face-canvas-container').append(canvas);
-        const displaySize = {width: video.width, height: video.height}; faceapi.matchDimensions(canvas, displaySize);
-        faceInterval = setInterval(async () => {
-          if(panicMode) return;
-          const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
-          const resized = faceapi.resizeResults(detections, displaySize);
-          const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
-          resized.forEach(d => { ctx.strokeStyle = '#2ecc71'; ctx.lineWidth = 4; ctx.strokeRect(d.box.x, d.box.y, d.box.width, d.box.height); });
-          document.getElementById('face-count').innerText = `🤖 ${detections.length} HUMAINS DÉTECTÉS`;
-        }, 500);
-      };
+      if(conn && conn.open) {
+        conn.send({type: 'START_CELL_CAM'});
+        showToast('\u{1F4F7} D\u00e9marrage cam\u00e9ra du cell...', false);
+      } else {
+        showToast('\u274c Cell non connect\u00e9 !', true);
+      }
     };
     window.stopCam = () => {
-      if(camStream) { camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
-      clearInterval(faceInterval); document.getElementById('btn-cam').style.display = 'inline-block'; document.getElementById('btn-stop-cam').style.display = 'none';
+      if(conn && conn.open) conn.send({type: 'STOP_CELL_CAM'});
+      if(mediaCall) { mediaCall.close(); mediaCall = null; }
+      clearInterval(faceInterval);
+      document.getElementById('btn-cam').style.display = 'inline-block';
+      document.getElementById('btn-stop-cam').style.display = 'none';
       const v = document.getElementById('video-cam'); if(v) v.srcObject = null;
+      document.getElementById('face-count').innerText = '\u{1F916} 0 HUMAINS D\u00c9TECT\u00c9S';
     };
 
     // WebRTC Subtitles
@@ -893,6 +924,17 @@ PEERJS : Pour la télécommande cellulaire.
 
     // Init Laptop
     updateSlides();
+    peer.on('call', (call) => {
+      mediaCall = call;
+      call.answer();
+      call.on('stream', (stream) => {
+        const video = document.getElementById('video-cam');
+        video.srcObject = stream;
+        video.onloadedmetadata = () => video.play();
+        document.getElementById('btn-cam').style.display = 'none';
+        document.getElementById('btn-stop-cam').style.display = 'inline-block';
+      });
+    });
     // Auto-start Magic Voice mode
     setTimeout(() => { if(!panicMode) toggleMagicVoice(); }, 1000);
   } 
