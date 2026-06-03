@@ -104,8 +104,13 @@ PEERJS : Pour la télécommande cellulaire.
   
   /* Navigation Module */
   .nav-btn { flex-grow: 1; background: #2f3542; margin: 10px; border-radius: 20px; font-size: 4em; display: flex; justify-content: center; align-items: center; border: none; color: white; }
-  
-</style>
+    #cell-slide-content h1, #cell-slide-content h2 { font-size: 1.5em !important; margin: 10px 0 !important; line-height: 1.2 !important; }
+    #cell-slide-content h3 { font-size: 1.2em !important; }
+    #cell-slide-content p, #cell-slide-content li { font-size: 1.1em !important; margin: 8px 0 !important; line-height: 1.4 !important; text-align: left !important; }
+    #cell-slide-content .emoji-giant { font-size: 3em !important; margin: 0 !important; }
+    #cell-slide-content .box, #cell-slide-content .vote-card { border: 2px solid #555; padding: 10px; margin-top: 10px; border-radius: 10px; text-align: left; }
+    #cell-slide-content .highlight { color: var(--accent-yellow); font-weight: bold; }
+  </style>
 </head>
 <body>
 
@@ -427,10 +432,9 @@ PEERJS : Pour la télécommande cellulaire.
   </div>
 
   <!-- Slide preview - always visible at top -->
-  <div id="cell-slide-preview" style="width: 100%; text-align: center; padding: 15px 10px 5px; flex-shrink: 0;">
-    <div id="cell-slide-emoji" style="font-size: 2.5em;"></div>
-    <div id="cell-slide-title" style="font-size: 1.2em; font-weight: bold; color: white; margin-top: 5px;"></div>
-    <div id="cell-slide-num" style="font-size: 0.9em; color: #7f8fa6; margin-top: 3px;"></div>
+  <div id="cell-slide-preview" style="width: 100%; text-align: center; padding: 15px 20px; flex-shrink: 0; overflow-y: auto; max-height: 65vh; display: flex; flex-direction: column; align-items: center;">
+    <div id="cell-slide-num" style="font-size: 1em; color: #7f8fa6; margin-bottom: 15px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;"></div>
+    <div id="cell-slide-content" style="width: 100%; padding-bottom: 20px;"></div>
   </div>
 
   <!-- Persistent nav arrows - always visible on cell -->
@@ -567,13 +571,12 @@ PEERJS : Pour la télécommande cellulaire.
       if(mod !== 'micro') stopLaptopWebRTC();
       if(activeSlide.id !== 'slide-photo' && document.getElementById('video-cam').srcObject) stopCam(); // stop scanner cam if leaving
 
-      // Extract slide content for cell preview
-      const emojiEl = activeSlide.querySelector('.emoji-giant');
-      const titleEl = activeSlide.querySelector('h2') || activeSlide.querySelector('h1');
-      const slideEmoji = emojiEl ? emojiEl.innerText : '';
-      const slideTitle = titleEl ? titleEl.innerText : '';
+      // Extract slide content for cell preview (teleprompter)
+      const clone = activeSlide.cloneNode(true);
+      clone.querySelectorAll('img, video, iframe, button').forEach(el => el.remove()); // clean up media/buttons
+      const slideHTML = clone.innerHTML;
 
-      if(conn && conn.open) conn.send({type: 'SWITCH_MODULE', module: mod, emoji: slideEmoji, title: slideTitle, num: (currentSlide+1) + '/' + slides.length});
+      if(conn && conn.open) conn.send({type: 'SWITCH_MODULE', module: mod, html: slideHTML, num: 'Slide ' + (currentSlide+1) + '/' + slides.length});
       
       // Show test tools and cell status only on slide 1
       document.getElementById('test-tools').style.display = (currentSlide === 0) ? 'flex' : 'none';
@@ -1056,9 +1059,8 @@ PEERJS : Pour la télécommande cellulaire.
            if(document.getElementById(modId)) document.getElementById(modId).style.display = 'flex';
            else document.getElementById('mod-nav').style.display = 'flex';
            // Update slide preview
-           document.getElementById('cell-slide-emoji').innerText = data.emoji || '';
-           document.getElementById('cell-slide-title').innerText = data.title || '';
            document.getElementById('cell-slide-num').innerText = data.num || '';
+           document.getElementById('cell-slide-content').innerHTML = data.html || '';
            
 
         }
