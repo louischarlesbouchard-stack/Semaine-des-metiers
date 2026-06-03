@@ -184,7 +184,7 @@ PEERJS : Pour la télécommande cellulaire.
           <div class="vote-bar-container"><div id="v1-bar-2" class="vote-bar" style="background: var(--accent-red);"></div></div>
         </div>
       </div>
-      <p id="vote-total" style="color: var(--accent-yellow); font-weight: bold; margin-top: 20px;">0 / 25 votes reçus</p>
+      <p id="vote-total" style="color: var(--accent-yellow); font-weight: bold; margin-top: 20px;">0 / 26 votes reçus</p>
       <button onclick="terminerVote(1)" style="margin-top: 10px;">🏁 TERMINER LE VOTE</button>
       <h1 id="winner-reveal-1" style="display: none; position: absolute; z-index: 500; font-size: 8em; text-shadow: 5px 5px 20px black;">🏆 <span id="winner-text-1">GAGNANT</span> !</h1>
     </div>
@@ -591,7 +591,7 @@ PEERJS : Pour la télécommande cellulaire.
           document.getElementById(`v1-count-${i}`).innerText = votes[1][i];
           document.getElementById(`v1-bar-${i}`).style.width = (total > 0 ? (votes[1][i] / total) * 100 : 0) + '%';
         }
-        document.getElementById('vote-total').innerText = `${total} / 25 votes re\u00e7us`;
+        document.getElementById('vote-total').innerText = `${total} / 26 votes re\u00e7us`;
       } else {
         votes[voteId][choice === 'left' ? 'l' : 'r']++;
         const total = votes[2].l + votes[2].r;
@@ -635,7 +635,7 @@ PEERJS : Pour la télécommande cellulaire.
         document.getElementById(`card-v1-${i}`).style.opacity = '1';
         document.getElementById(`card-v1-${i}`).style.animation = 'none';
       }
-      document.getElementById('vote-total').innerText = '0 / 25 votes re\u00e7us';
+      document.getElementById('vote-total').innerText = '0 / 26 votes re\u00e7us';
       document.getElementById('v2-left').innerText = '0'; document.getElementById('v2-right').innerText = '0';
       document.getElementById('b2-left').style.width = '0%'; document.getElementById('b2-right').style.width = '0%';
       document.getElementById('card-left-2').style.opacity = '1'; document.getElementById('card-right-2').style.opacity = '1';
