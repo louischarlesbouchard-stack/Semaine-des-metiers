@@ -134,7 +134,7 @@ PEERJS : Pour la télécommande cellulaire.
   <div id="test-tools" style="position: absolute; bottom: 170px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 100;">
     <button id="test-mic" style="font-size: 0.8em; padding: 8px; background: #555;" onclick="testMic()">🎤 TEST</button>
     <button id="test-cam" style="font-size: 0.8em; padding: 8px; background: #555;" onclick="testCam()">📸 TEST</button>
-    <button id="test-net" style="font-size: 0.8em; padding: 8px; background: #555;" onclick="testInternet()">🌐 API</button>
+    <button id="test-net" style="font-size: 0.8em; padding: 8px; background: var(--accent-blue);" onclick="configurerCleIA()">🔑 CLÉ IA</button>
   </div>
 
   <div id="slide-container">
@@ -589,7 +589,11 @@ PEERJS : Pour la télécommande cellulaire.
     };
     window.saveAPIKey = () => {
       const key = document.getElementById('api-input-field').value;
-      if(key) { ANTHROPIC_API_KEY = key.trim(); showToast("Clé configurée temporairement ✅", false); }
+      if(key) { 
+        ANTHROPIC_API_KEY = key.trim(); 
+        showToast("Clé configurée temporairement ✅", false); 
+        document.getElementById('test-net').style.display = 'none';
+      }
       document.getElementById('api-modal').style.display = 'none';
       document.getElementById('api-input-field').value = '';
     };
@@ -1092,7 +1096,7 @@ PEERJS : Pour la télécommande cellulaire.
       conn.send({type: 'TEST_CAM'});
       document.getElementById('test-cam').innerText='⏳ Test...';
     };
-    window.testInternet = () => { fetch('https://api.anthropic.com', {mode:'no-cors'}).then(()=>{ const btn = document.getElementById('test-net'); btn.style.background='green'; btn.innerText='✅ API OK'; setTimeout(() => { btn.style.display = 'none'; }, 3000); }).catch(()=>{ document.getElementById('test-net').style.background='red'; }); };
+
 
     // Init Laptop
     updateSlides();
