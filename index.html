@@ -156,7 +156,7 @@ PEERJS : Pour la télécommande cellulaire.
     </div>
 
     <!-- 2. APPLAUDIMÈTRE (Réintégré V1 -> V3) -->
-    <div class="slide">
+    <div class="slide" data-module="applause">
       <h2 style="color: var(--accent-red);">ALLEZ-VOUS BIEN ?</h2>
       <h1 style="color: var(--accent-yellow);">CRIEZ FORT !! 🔊</h1>
       <div style="width: 100px; height: 300px; border: 5px solid white; border-radius: 50px; margin: 30px auto; position: relative; overflow: hidden; background: rgba(0,0,0,0.5);">
@@ -442,6 +442,12 @@ PEERJS : Pour la télécommande cellulaire.
   <div id="cell-nav-bar" style="position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 10px; padding: 8px 15px; background: rgba(0,0,0,0.9); border-top: 2px solid #333; z-index: 900;">
     <button onclick="sendCmd('prev')" style="flex: 1; padding: 12px; font-size: 1.5em; border: 2px solid #555; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; cursor: pointer;">⬅️</button>
     <button onclick="sendCmd('next')" style="flex: 1; padding: 12px; font-size: 1.5em; border: 2px solid #555; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; cursor: pointer;">➡️</button>
+  </div>
+
+  <div id="mod-applause" class="remote-module">
+    <h2 style="color: var(--accent-yellow);">🎤 APPLAUDIMÈTRE</h2>
+    <button onclick="sendApplauseCmd('start')" style="width: 85%; padding: 25px; font-size: 2em; border: none; border-radius: 20px; background: #3498db; color: white; cursor: pointer; margin-bottom: 15px;">🎤 ACTIVER L'OREILLE</button>
+    <button onclick="sendApplauseCmd('stop')" style="width: 85%; padding: 25px; font-size: 2em; border: none; border-radius: 20px; background: #e74c3c; color: white; cursor: pointer;">⏹ ARRÊTER</button>
   </div>
 
   <div id="mod-swipe" class="remote-module">
@@ -734,6 +740,10 @@ PEERJS : Pour la télécommande cellulaire.
       if(panicMode) return;
       if(data.type === 'CMD_NAV') {
         if(data.cmd === 'next') window.nextSlide(); else window.prevSlide();
+      }
+      if(data.type === 'APPLAUSE_CMD') {
+        if(data.cmd === 'start') startApplause();
+        if(data.cmd === 'stop') stopApplause();
       }
       if(data.type === 'VIDEO_CMD') {
         const v = document.getElementById('video-corp');
@@ -1037,6 +1047,10 @@ PEERJS : Pour la télécommande cellulaire.
     };
 
     // Buzzer Logic
+    window.sendApplauseCmd = (cmd) => {
+      if(conn && conn.open) conn.send({type: 'APPLAUSE_CMD', cmd});
+      showToast(cmd === 'start' ? '🎤 Oreille activée !' : '⏹ Arrêté', false);
+    };
     window.sendVideoCmd = (cmd) => {
       if(conn && conn.open) conn.send({type: 'VIDEO_CMD', cmd});
     };
