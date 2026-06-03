@@ -294,7 +294,7 @@ PEERJS : Pour la télécommande cellulaire.
     </div>
 
     <!-- 13. Camera -->
-    <div class="slide">
+    <div class="slide" data-module="cam">
       <h2 style="color: var(--accent-green);">🤖 L'IA VOUS REGARDE EN CE MOMENT MÊME!</h2>
       <div style="position:relative; width: 70vw; max-width: 900px; height: auto; aspect-ratio: 4/3; margin: 0 auto; border: 6px solid var(--accent-green); border-radius: 15px; overflow: hidden; background: #000;" id="video-container">
         <video id="video-cam" autoplay muted style="transform: scaleX(-1); width: 100%; height: 100%; object-fit: cover;"></video>
@@ -507,6 +507,12 @@ PEERJS : Pour la télécommande cellulaire.
     <button onclick="sendVideoCmd('play')" style="width: 85%; padding: 25px; font-size: 2em; border: none; border-radius: 20px; background: #2ecc71; color: white; cursor: pointer; margin-bottom: 15px;">▶️ JOUER</button>
     <button onclick="sendVideoCmd('pause')" style="width: 85%; padding: 25px; font-size: 2em; border: none; border-radius: 20px; background: #e67e22; color: white; cursor: pointer; margin-bottom: 15px;">⏸️ PAUSE</button>
     <button onclick="sendVideoCmd('restart')" style="width: 85%; padding: 25px; font-size: 2em; border: none; border-radius: 20px; background: #3498db; color: white; cursor: pointer;">🔄 RECOMMENCER</button>
+  </div>
+
+  <div id="mod-cam" class="remote-module">
+    <h2 style="color: var(--accent-green);">👀 YEUX DE L'IA</h2>
+    <button onclick="sendCamCmd('start')" style="width: 85%; padding: 25px; font-size: 1.5em; border: none; border-radius: 20px; background: var(--accent-blue); color: white; cursor: pointer; margin-bottom: 15px;">📸 ACTIVER LES YEUX</button>
+    <button onclick="sendCamCmd('stop')" style="width: 85%; padding: 25px; font-size: 1.5em; border: none; border-radius: 20px; background: #e74c3c; color: white; cursor: pointer;">⏹ FERMER</button>
   </div>
 
   <div id="mod-buzzer" class="remote-module">
@@ -806,6 +812,10 @@ PEERJS : Pour la télécommande cellulaire.
         if(data.cmd === 'pause') v.pause();
         if(data.cmd === 'restart') { v.currentTime = 0; v.play(); }
       }
+      if(data.type === 'CAM_CMD') {
+        if(data.cmd === 'start') startCam();
+        if(data.cmd === 'stop') stopCam();
+      }
       if(data.type === 'TEST_RESULT') {
         const btn = document.getElementById('test-' + data.device);
         if(data.ok) { btn.style.background = 'green'; btn.innerText = '✅ ' + data.device.toUpperCase() + ' OK'; setTimeout(() => { btn.style.display = 'none'; }, 3000); }
@@ -912,7 +922,7 @@ PEERJS : Pour la télécommande cellulaire.
           method: 'POST',
           headers: {'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'},
           body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20241022', max_tokens: 150,
+            model: 'claude-3-haiku-20240307', max_tokens: 150,
             system: "Tu parles à un enfant de 9-10 ans dans une classe au Québec. Réponds en québécois, 2-3 phrases amusantes. Pas de jargon. Utilise des emojis.",
             messages: [{role: 'user', content: input}]
           })
@@ -961,7 +971,7 @@ PEERJS : Pour la télécommande cellulaire.
           method: 'POST',
           headers: {'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'},
           body: JSON.stringify({
-            model: 'claude-3-5-sonnet-20241022', max_tokens: 300,
+            model: 'claude-3-haiku-20240307', max_tokens: 300,
             system: "Tu regardes une photo de classe d'enfants de 9-10 ans au Québec. Décris l'ambiance, compte les personnes de façon amusante. Complimente globalement. JAMAIS de commentaires sur l'apparence physique (poids, traits) - uniquement ambiance, couleurs, énergie, sourires.",
             messages: [{role: 'user', content: [{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}}, {"type": "text", "text": "Décris cette photo magique."}] }]
           })
@@ -1172,10 +1182,12 @@ PEERJS : Pour la télécommande cellulaire.
     };
     window.sendApplauseCmd = (cmd) => {
       if(conn && conn.open) conn.send({type: 'APPLAUSE_CMD', cmd});
-      showToast(cmd === 'start' ? '🎤 Oreille activée !' : '⏹ Arrêté', false);
     };
     window.sendVideoCmd = (cmd) => {
       if(conn && conn.open) conn.send({type: 'VIDEO_CMD', cmd});
+    };
+    window.sendCamCmd = (cmd) => {
+      if(conn && conn.open) conn.send({type: 'CAM_CMD', cmd});
     };
     window.sendBuzz = () => {
       if(conn && conn.open) conn.send({type: 'BUZZ'});
