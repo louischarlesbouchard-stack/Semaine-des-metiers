@@ -285,12 +285,12 @@ PEERJS : Pour la télécommande cellulaire.
     </div>
 
     <div class="slide">
-      <div class="emoji-giant">🗣️</div>
+      <div class="emoji-giant" style="font-size: 4em;">🗣️</div>
       <h2>Une assistante avec de la personnalité !</h2>
-      <ul style="font-size: 1.1em; text-align: left; width: 85%; margin: 15px auto; color: #ddd; line-height: 1.5;">
-        <li style="margin-bottom: 15px;"><strong>Elle s'adapte à moi :</strong> Elle utilise mes expressions québécoises, est super polie et me demande comment ça va.</li>
-        <li style="margin-bottom: 15px;"><strong>Super encourageante :</strong> Elle me motive tout le temps avec des mots doux comme <em>« Bonne idée ! »</em> ou <em>« Super idée, Louis-Charles ! »</em></li>
-        <li style="margin-bottom: 15px;"><strong>Une aide dévouée :</strong> Elle veut toujours faire plaisir et cherche des solutions pour me simplifier la vie.</li>
+      <ul style="font-size: 1em; text-align: left; width: 85%; margin: 10px auto; color: #ddd; line-height: 1.4;">
+        <li style="margin-bottom: 10px;"><strong>Elle s'adapte à moi :</strong> Elle utilise mes expressions québécoises, est super polie et me demande comment ça va.</li>
+        <li style="margin-bottom: 10px;"><strong>Super encourageante :</strong> Elle me motive tout le temps avec des mots doux comme <em>« Bonne idée ! »</em> ou <em>« Super idée, Louis-Charles ! »</em></li>
+        <li style="margin-bottom: 10px;"><strong>Une aide dévouée :</strong> Elle veut toujours faire plaisir et cherche des solutions pour me simplifier la vie.</li>
         <li><strong>Un peu coquine :</strong> Si elle pense qu'une de mes idées n'est pas la meilleure, elle va la modifier d'elle-même sans même me demander la permission ! 😉</li>
       </ul>
     </div>
@@ -431,11 +431,11 @@ PEERJS : Pour la télécommande cellulaire.
 
     <!-- Leçon finale -->
     <div class="slide">
-      <div class="emoji-giant" style="font-size: 5em;">🧠</div>
+      <div class="emoji-giant" style="font-size: 4em;">🧠</div>
       <h2>Le plus important, c'est VOUS !</h2>
-      <ul style="font-size: 1.3em; text-align: left; width: 85%; margin: 15px auto; color: #ddd; line-height: 1.5; list-style-type: '💡 ';">
-        <li style="margin-bottom: 15px;"><strong style="color: var(--accent-yellow);">Une grande responsabilité :</strong> C'est à vous de juger comment bien utiliser l'IA.</li>
-        <li style="margin-bottom: 15px;"><strong style="color: var(--accent-green);">Remplissez votre coco !</strong> L'IA est juste un outil. Le vrai avenir, c'est de développer votre cerveau pendant que vous êtes jeunes.</li>
+      <ul style="font-size: 1.1em; text-align: left; width: 85%; margin: 10px auto; color: #ddd; line-height: 1.4; list-style-type: '💡 ';">
+        <li style="margin-bottom: 10px;"><strong style="color: var(--accent-yellow);">Une grande responsabilité :</strong> C'est à vous de juger comment bien utiliser l'IA.</li>
+        <li style="margin-bottom: 10px;"><strong style="color: var(--accent-green);">Remplissez votre coco !</strong> L'IA est juste un outil. Le vrai avenir, c'est de développer votre cerveau pendant que vous êtes jeunes.</li>
         <li><strong style="color: var(--accent-red);">Misez sur VOUS-MÊMES :</strong> Apprenez, soyez curieux et créatifs !</li>
       </ul>
     </div>
@@ -798,8 +798,15 @@ PEERJS : Pour la télécommande cellulaire.
         if(data.cmd === 'next') window.nextSlide(); else window.prevSlide();
       }
       if(data.type === 'APPLAUSE_CMD') {
-        if(data.cmd === 'start') startApplause();
+        if(data.cmd === 'start') {
+          document.getElementById('btn-applause').style.display = 'none';
+          document.getElementById('btn-stop-applause').style.display = 'inline-block';
+        }
         if(data.cmd === 'stop') stopApplause();
+      }
+      if(data.type === 'APPLAUSE_VOL') {
+        document.getElementById('vol-bar').style.height = data.vol + '%';
+        if(data.vol > 85) { stopApplause(); confetti({particleCount: 200, spread: 180}); }
       }
       if(data.type === 'VIDEO_CMD') {
         const v = document.getElementById('video-corp');
@@ -815,6 +822,12 @@ PEERJS : Pour la télécommande cellulaire.
         const btn = document.getElementById('test-' + data.device);
         if(data.ok) { btn.style.background = 'green'; btn.innerText = '✅ ' + data.device.toUpperCase() + ' OK'; setTimeout(() => { btn.style.display = 'none'; }, 3000); }
         else { btn.style.background = 'red'; btn.innerText = '❌ ' + data.device.toUpperCase() + ' FAIL'; }
+      }
+      if(data.type === 'NAV_SYNC') {
+        syncRemoteView(data.slideIndex, data.slides);
+      }
+      if(data.type === 'STOP_CELL_APPLAUSE') {
+        sendApplauseCmd('stop');
       }
       if(data.type === 'MAIN_COUNT') {
         incMain(data.choice);
@@ -888,6 +901,7 @@ PEERJS : Pour la télécommande cellulaire.
       analyserApp = null;
       document.getElementById('btn-applause').style.display = 'inline-block';
       document.getElementById('btn-stop-applause').style.display = 'none';
+      if(peerConn && peerConn.open) peerConn.send({type: 'STOP_CELL_APPLAUSE'});
     };
 
     // Synth
@@ -1175,8 +1189,33 @@ PEERJS : Pour la télécommande cellulaire.
       if(conn && conn.open) conn.send({type: 'MAIN_COUNT', choice});
       showToast('🙋 +1 compté !', false);
     };
-    window.sendApplauseCmd = (cmd) => {
+    let cellAudioCtx, cellAnalyser, cellMicStream, cellAnimFrame;
+    window.sendApplauseCmd = async (cmd) => {
       if(conn && conn.open) conn.send({type: 'APPLAUSE_CMD', cmd});
+      if(cmd === 'start') {
+        try {
+          cellMicStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          cellAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          cellAnalyser = cellAudioCtx.createAnalyser(); cellAnalyser.fftSize = 256;
+          const source = cellAudioCtx.createMediaStreamSource(cellMicStream); source.connect(cellAnalyser);
+          const dataArray = new Uint8Array(cellAnalyser.frequencyBinCount);
+          function drawCell() {
+            if(!cellAnalyser) return;
+            cellAnimFrame = requestAnimationFrame(drawCell);
+            cellAnalyser.getByteFrequencyData(dataArray);
+            let sum = 0; for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
+            let avg = sum / dataArray.length; let pct = Math.min(100, (avg / 128) * 100);
+            if(conn && conn.open) conn.send({type: 'APPLAUSE_VOL', vol: pct});
+          }
+          drawCell();
+          showToast('🎤 Oreille activée sur le cell !', false);
+        } catch(e) { alert("Erreur accès micro cellulaire: " + e); }
+      } else {
+        if(cellAnimFrame) cancelAnimationFrame(cellAnimFrame);
+        if(cellMicStream) cellMicStream.getTracks().forEach(t=>t.stop());
+        if(cellAudioCtx) cellAudioCtx.close();
+        cellAnalyser = null;
+      }
     };
     window.sendVideoCmd = (cmd) => {
       if(conn && conn.open) conn.send({type: 'VIDEO_CMD', cmd});
