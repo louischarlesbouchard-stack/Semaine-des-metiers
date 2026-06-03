@@ -423,8 +423,13 @@ PEERJS : Pour la télécommande cellulaire.
 <div id="remote-view">
   
   <div id="mod-nav" class="remote-module" style="display: flex;">
-    <h2 style="margin: 0; padding: 10px; color: #7f8fa6;">📱 Connecté !</h2>
-    <p style="color: #7f8fa6; font-size: 1.2em;">Utilisez les flèches en bas pour naviguer</p>
+  </div>
+
+  <!-- Slide preview - always visible at top -->
+  <div id="cell-slide-preview" style="width: 100%; text-align: center; padding: 15px 10px 5px; flex-shrink: 0;">
+    <div id="cell-slide-emoji" style="font-size: 2.5em;"></div>
+    <div id="cell-slide-title" style="font-size: 1.2em; font-weight: bold; color: white; margin-top: 5px;"></div>
+    <div id="cell-slide-num" style="font-size: 0.9em; color: #7f8fa6; margin-top: 3px;"></div>
   </div>
 
   <!-- Persistent nav arrows - always visible on cell -->
@@ -559,7 +564,13 @@ PEERJS : Pour la télécommande cellulaire.
       if(mod !== 'micro') stopLaptopWebRTC();
       if(activeSlide.id !== 'slide-photo' && document.getElementById('video-cam').srcObject) stopCam(); // stop scanner cam if leaving
 
-      if(conn && conn.open) conn.send({type: 'SWITCH_MODULE', module: mod});
+      // Extract slide content for cell preview
+      const emojiEl = activeSlide.querySelector('.emoji-giant');
+      const titleEl = activeSlide.querySelector('h2') || activeSlide.querySelector('h1');
+      const slideEmoji = emojiEl ? emojiEl.innerText : '';
+      const slideTitle = titleEl ? titleEl.innerText : '';
+
+      if(conn && conn.open) conn.send({type: 'SWITCH_MODULE', module: mod, emoji: slideEmoji, title: slideTitle, num: (currentSlide+1) + '/' + slides.length});
       
       // Show test tools and cell status only on slide 1
       document.getElementById('test-tools').style.display = (currentSlide === 0) ? 'flex' : 'none';
@@ -1035,6 +1046,10 @@ PEERJS : Pour la télécommande cellulaire.
            const modId = 'mod-' + data.module;
            if(document.getElementById(modId)) document.getElementById(modId).style.display = 'flex';
            else document.getElementById('mod-nav').style.display = 'flex';
+           // Update slide preview
+           document.getElementById('cell-slide-emoji').innerText = data.emoji || '';
+           document.getElementById('cell-slide-title').innerText = data.title || '';
+           document.getElementById('cell-slide-num').innerText = data.num || '';
            
 
         }
