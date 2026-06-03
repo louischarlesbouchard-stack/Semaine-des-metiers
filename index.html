@@ -731,7 +731,7 @@ PEERJS : Pour la télécommande cellulaire.
         }
         document.getElementById('vote-total').innerText = `${total} / 26 votes re\u00e7us`;
       } else {
-        votes[voteId][choice === 'left' ? 'l' : 'r']++;
+        votes[voteId][(choice === 'left' || choice === 'l') ? 'l' : 'r']++;
         const total = votes[2].l + votes[2].r;
         const pctL = (votes[2].l / total) * 100;
         const pctR = (votes[2].r / total) * 100;
