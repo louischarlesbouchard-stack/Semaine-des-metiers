@@ -191,7 +191,7 @@ PEERJS : Pour la télécommande cellulaire.
 
 
     <!-- 5-12: Storytelling enrichi -->
-    <div class="slide" id="slide-video">
+    <div class="slide" id="slide-video" data-module="video">
       <h2>🏗️ Je travaille pour un grand distributeur industriel</h2>
       <p>C'est comme un immense magasin de jouets... mais pour les compagnies qui construisent des choses !</p>
       <video id="video-corp" controls style="width: 80%; max-height: 55vh; border-radius: 15px; border: 3px solid var(--accent-yellow); margin-top: 15px; background: #000;">
@@ -445,6 +445,13 @@ PEERJS : Pour la télécommande cellulaire.
       <button onclick="sendSwipeVote(1)" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-yellow); border-radius: 20px; background: rgba(241,196,15,0.2); color: white; cursor: pointer;">👨‍🍳 Cuisinier</button>
       <button onclick="sendSwipeVote(2)" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-red); border-radius: 20px; background: rgba(231,76,60,0.2); color: white; cursor: pointer;">📈 Consultant</button>
     </div>
+  </div>
+
+  <div id="mod-video" class="remote-module">
+    <h2 style="color: var(--accent-yellow);">🎬 VIDÉO</h2>
+    <button onclick="sendVideoCmd('play')" style="width: 85%; padding: 25px; font-size: 2em; border: none; border-radius: 20px; background: #2ecc71; color: white; cursor: pointer; margin-bottom: 15px;">▶️ JOUER</button>
+    <button onclick="sendVideoCmd('pause')" style="width: 85%; padding: 25px; font-size: 2em; border: none; border-radius: 20px; background: #e67e22; color: white; cursor: pointer; margin-bottom: 15px;">⏸️ PAUSE</button>
+    <button onclick="sendVideoCmd('restart')" style="width: 85%; padding: 25px; font-size: 2em; border: none; border-radius: 20px; background: #3498db; color: white; cursor: pointer;">🔄 RECOMMENCER</button>
   </div>
 
   <div id="mod-buzzer" class="remote-module">
@@ -715,6 +722,12 @@ PEERJS : Pour la télécommande cellulaire.
       if(panicMode) return;
       if(data.type === 'CMD_NAV') {
         if(data.cmd === 'next') window.nextSlide(); else window.prevSlide();
+      }
+      if(data.type === 'VIDEO_CMD') {
+        const v = document.getElementById('video-corp');
+        if(data.cmd === 'play') v.play();
+        if(data.cmd === 'pause') v.pause();
+        if(data.cmd === 'restart') { v.currentTime = 0; v.play(); }
       }
       if(data.type === 'VOTE') {
         const activeSlide = slides[currentSlide];
@@ -1008,6 +1021,9 @@ PEERJS : Pour la télécommande cellulaire.
     }
 
     // Buzzer Logic
+    window.sendVideoCmd = (cmd) => {
+      if(conn && conn.open) conn.send({type: 'VIDEO_CMD', cmd});
+    };
     window.sendBuzz = () => {
       if(conn && conn.open) conn.send({type: 'BUZZ'});
       showToast('🔔 BUZZ envoyé !', false);
