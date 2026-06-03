@@ -706,8 +706,8 @@ PEERJS : Pour la télécommande cellulaire.
     
     window.terminerVote = (id) => {
       if(id === 1) {
-        const maxIdx = votes[1].indexOf(Math.max(...votes[1]));
-        const names = ['PROFESSEUR', 'CUISINIER', 'CHEF DE ROBOTS'];
+        const maxIdx = 2; // Consultant gagne toujours !
+        const names = ['GUIDE DE RAFTING', 'CUISINIER', 'CONSULTANT'];
         for(let i = 0; i < 3; i++) {
           document.getElementById(`card-v1-${i}`).style.opacity = (i === maxIdx) ? '1' : '0.3';
           if(i === maxIdx) document.getElementById(`card-v1-${i}`).style.animation = 'winnerScale 3s forwards';
