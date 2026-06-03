@@ -145,7 +145,6 @@ PEERJS : Pour la télécommande cellulaire.
       <h1>Bonjour! Je m'appelle Louis-Charles</h1>
       <h2 style="color: var(--accent-green);">(Le fier beau-père d'Anthony !)</h2>
       <div style="display: flex; gap: 20px; margin-top: 20px;">
-        <button onclick="document.getElementById('api-modal').style.display='flex'" style="background: var(--accent-blue);">🔑 Configurer clé IA</button>
         <button onclick="showQRCode()" style="background: var(--accent-green); display:none;">📱 Connecter Cell</button>
       </div>
     </div>
@@ -164,8 +163,10 @@ PEERJS : Pour la télécommande cellulaire.
        <h2 style="color: var(--accent-blue);">🔑 Configuration Clé IA</h2>
        <input type="password" id="api-input-field" placeholder="Coller la clé ici..." style="width: 100%; min-width: 300px; padding: 15px; font-size: 1.2em; margin-bottom: 20px; border-radius: 10px; border: none;">
        <br>
-       <button onclick="saveAPIKey()" style="background: var(--accent-green);">Sauvegarder</button>
-       <button onclick="document.getElementById('api-modal').style.display='none'" style="background: var(--accent-red);">Fermer</button>
+       <div style="display: flex; justify-content: center; gap: 15px;">
+         <button onclick="saveAPIKey()" style="background: var(--accent-green); font-size: 1.2em; padding: 10px 20px;">Sauvegarder</button>
+         <button onclick="document.getElementById('api-modal').style.display='none'" style="background: var(--accent-red); font-size: 1.2em; padding: 10px 20px;">Fermer</button>
+       </div>
     </div>
 
     <!-- 2. APPLAUDIMÈTRE (Réintégré V1 -> V3) -->
