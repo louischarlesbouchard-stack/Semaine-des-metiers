@@ -903,7 +903,7 @@ PEERJS : Pour la télécommande cellulaire.
           method: 'POST',
           headers: {'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'},
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514', max_tokens: 150,
+            model: 'claude-3-5-sonnet-20241022', max_tokens: 150,
             system: "Tu parles à un enfant de 9-10 ans dans une classe au Québec. Réponds en québécois, 2-3 phrases amusantes. Pas de jargon. Utilise des emojis.",
             messages: [{role: 'user', content: input}]
           })
@@ -952,7 +952,7 @@ PEERJS : Pour la télécommande cellulaire.
           method: 'POST',
           headers: {'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true'},
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514', max_tokens: 300,
+            model: 'claude-3-5-sonnet-20241022', max_tokens: 300,
             system: "Tu regardes une photo de classe d'enfants de 9-10 ans au Québec. Décris l'ambiance, compte les personnes de façon amusante. Complimente globalement. JAMAIS de commentaires sur l'apparence physique (poids, traits) - uniquement ambiance, couleurs, énergie, sourires.",
             messages: [{role: 'user', content: [{"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": b64}}, {"type": "text", "text": "Décris cette photo magique."}] }]
           })
