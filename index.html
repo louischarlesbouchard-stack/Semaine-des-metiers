@@ -1209,20 +1209,20 @@ PEERJS : Pour la télécommande cellulaire.
       if(conn && conn.open) conn.send({type: 'MAIN_COUNT', choice});
       showToast('🙋 +1 compté !', false);
     };
-    let cellAudioCtx, cellAnalyser, cellMicStream, cellAnimFrame;
+    let appCellAudioCtx, appCellAnalyser, appCellMicStream, appCellAnimFrame;
     window.sendApplauseCmd = async (cmd) => {
       if(conn && conn.open) conn.send({type: 'APPLAUSE_CMD', cmd});
       if(cmd === 'start') {
         try {
-          cellMicStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-          cellAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          cellAnalyser = cellAudioCtx.createAnalyser(); cellAnalyser.fftSize = 256;
-          const source = cellAudioCtx.createMediaStreamSource(cellMicStream); source.connect(cellAnalyser);
-          const dataArray = new Uint8Array(cellAnalyser.frequencyBinCount);
+          appCellMicStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          appCellAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          appCellAnalyser = appCellAudioCtx.createAnalyser(); appCellAnalyser.fftSize = 256;
+          const source = appCellAudioCtx.createMediaStreamSource(appCellMicStream); source.connect(appCellAnalyser);
+          const dataArray = new Uint8Array(appCellAnalyser.frequencyBinCount);
           function drawCell() {
-            if(!cellAnalyser) return;
-            cellAnimFrame = requestAnimationFrame(drawCell);
-            cellAnalyser.getByteFrequencyData(dataArray);
+            if(!appCellAnalyser) return;
+            appCellAnimFrame = requestAnimationFrame(drawCell);
+            appCellAnalyser.getByteFrequencyData(dataArray);
             let sum = 0; for(let i=0; i<dataArray.length; i++) sum += dataArray[i];
             let avg = sum / dataArray.length; let pct = Math.min(100, (avg / 128) * 100);
             if(conn && conn.open) conn.send({type: 'APPLAUSE_VOL', vol: pct});
@@ -1231,10 +1231,10 @@ PEERJS : Pour la télécommande cellulaire.
           showToast('🎤 Oreille activée sur le cell !', false);
         } catch(e) { alert("Erreur accès micro cellulaire: " + e); }
       } else {
-        if(cellAnimFrame) cancelAnimationFrame(cellAnimFrame);
-        if(cellMicStream) cellMicStream.getTracks().forEach(t=>t.stop());
-        if(cellAudioCtx) cellAudioCtx.close();
-        cellAnalyser = null;
+        if(appCellAnimFrame) cancelAnimationFrame(appCellAnimFrame);
+        if(appCellMicStream) appCellMicStream.getTracks().forEach(t=>t.stop());
+        if(appCellAudioCtx) appCellAudioCtx.close();
+        appCellAnalyser = null;
       }
     };
     window.sendVideoCmd = (cmd) => {
