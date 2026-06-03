@@ -169,7 +169,7 @@ PEERJS : Pour la télécommande cellulaire.
       <p>Prenez le cell, glissez ⬅️➡️ pour choisir, puis glissez ⬆️ pour voter !</p>
       <div style="display: flex; justify-content: center; gap: 30px; width: 90%; margin-top: 30px;">
         <div class="vote-card" id="card-v1-0">
-          <div style="font-size: 4em;">🧑‍🏫</div><h2>Professeur</h2>
+          <div style="font-size: 4em;">🚣</div><h2>Guide de rafting</h2>
           <h1 id="v1-count-0" style="font-size: 4em; margin: 0;">0</h1>
           <div class="vote-bar-container"><div id="v1-bar-0" class="vote-bar"></div></div>
         </div>
@@ -179,7 +179,7 @@ PEERJS : Pour la télécommande cellulaire.
           <div class="vote-bar-container"><div id="v1-bar-1" class="vote-bar" style="background: var(--accent-yellow);"></div></div>
         </div>
         <div class="vote-card" id="card-v1-2">
-          <div style="font-size: 4em;">🤖</div><h2>Chef de Robots</h2>
+          <div style="font-size: 4em;">📈</div><h2>Consultant en amélioration</h2>
           <h1 id="v1-count-2" style="font-size: 4em; margin: 0;">0</h1>
           <div class="vote-bar-container"><div id="v1-bar-2" class="vote-bar" style="background: var(--accent-red);"></div></div>
         </div>
@@ -636,7 +636,7 @@ PEERJS : Pour la télécommande cellulaire.
     };
 
     // LAPTOP ACTIONS (VOTES)
-    const voteChoices1 = ['🧑‍🏫 Professeur', '👨‍🍳 Cuisinier', '🤖 Chef de Robots'];
+    const voteChoices1 = ['🚣 Guide de rafting', '👨‍🍳 Cuisinier', '📈 Consultant en amélioration'];
     let votes = {1: [0, 0, 0], 2: {l:0, r:0}};
     function voteAction(voteId, choice) {
       if(panicMode) return;
@@ -986,7 +986,7 @@ PEERJS : Pour la télécommande cellulaire.
     window.sendCmd = (cmd) => { if(conn && conn.open) conn.send({type: 'CMD_NAV', cmd}); };
     
     // Swipe logic - carousel with 3 choices + swipe up to confirm
-    const swipeChoices = [{emoji: '🧑‍🏫', name: 'Professeur'}, {emoji: '👨‍🍳', name: 'Cuisinier'}, {emoji: '🤖', name: 'Chef de Robots'}];
+    const swipeChoices = [{emoji: '🚣', name: 'Guide de rafting'}, {emoji: '👨‍🍳', name: 'Cuisinier'}, {emoji: '📈', name: 'Consultant en amélioration'}];
     let swipeIdx = 0;
     let touchStartX = 0, touchStartY = 0, lastSwipe = 0;
     
