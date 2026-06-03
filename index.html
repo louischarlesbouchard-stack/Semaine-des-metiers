@@ -283,7 +283,7 @@ PEERJS : Pour la télécommande cellulaire.
     </div>
 
     <!-- 14. Levez la main interactif -->
-    <div class="slide">
+    <div class="slide" data-module="mains">
       <div class="emoji-giant" style="font-size: 5em;">🙋‍♂️🙋‍♀️</div>
       <h2>Levez la main... Qui a déjà parlé à une IA ?</h2>
       <div class="emoji-row" style="gap: 30px;">
@@ -444,6 +444,13 @@ PEERJS : Pour la télécommande cellulaire.
   <div id="cell-nav-bar" style="position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 10px; padding: 8px 15px; background: rgba(0,0,0,0.9); border-top: 2px solid #333; z-index: 900;">
     <button onclick="sendCmd('prev')" style="flex: 1; padding: 12px; font-size: 1.5em; border: 2px solid #555; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; cursor: pointer;">⬅️</button>
     <button onclick="sendCmd('next')" style="flex: 1; padding: 12px; font-size: 1.5em; border: 2px solid #555; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; cursor: pointer;">➡️</button>
+  </div>
+
+  <div id="mod-mains" class="remote-module">
+    <h2 style="color: var(--accent-yellow);">🙋‍♂️ COMPTEUR DE MAINS</h2>
+    <button onclick="sendMainCount('siri')" style="width: 85%; padding: 20px; font-size: 1.8em; border: 3px solid var(--accent-blue); border-radius: 20px; background: rgba(52,152,219,0.2); color: white; cursor: pointer; margin-bottom: 10px;">📱 Siri</button>
+    <button onclick="sendMainCount('chat')" style="width: 85%; padding: 20px; font-size: 1.8em; border: 3px solid var(--accent-green); border-radius: 20px; background: rgba(46,204,113,0.2); color: white; cursor: pointer; margin-bottom: 10px;">💬 ChatGPT</button>
+    <button onclick="sendMainCount('jamais')" style="width: 85%; padding: 20px; font-size: 1.8em; border: 3px solid var(--accent-red); border-radius: 20px; background: rgba(231,76,60,0.2); color: white; cursor: pointer;">❌ Jamais</button>
   </div>
 
   <div id="mod-applause" class="remote-module">
@@ -757,6 +764,9 @@ PEERJS : Pour la télécommande cellulaire.
         const btn = document.getElementById('test-' + data.device);
         if(data.ok) { btn.style.background = 'green'; btn.innerText = '✅ ' + data.device.toUpperCase() + ' OK'; }
         else { btn.style.background = 'red'; btn.innerText = '❌ ' + data.device.toUpperCase() + ' FAIL'; }
+      }
+      if(data.type === 'MAIN_COUNT') {
+        incMain(data.choice);
       }
       if(data.type === 'VOTE') {
         const activeSlide = slides[currentSlide];
@@ -1073,6 +1083,10 @@ PEERJS : Pour la télécommande cellulaire.
     };
 
     // Buzzer Logic
+    window.sendMainCount = (choice) => {
+      if(conn && conn.open) conn.send({type: 'MAIN_COUNT', choice});
+      showToast('🙋 +1 compté !', false);
+    };
     window.sendApplauseCmd = (cmd) => {
       if(conn && conn.open) conn.send({type: 'APPLAUSE_CMD', cmd});
       showToast(cmd === 'start' ? '🎤 Oreille activée !' : '⏹ Arrêté', false);
