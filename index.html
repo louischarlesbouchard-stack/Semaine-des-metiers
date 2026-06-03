@@ -87,7 +87,7 @@ PEERJS : Pour la télécommande cellulaire.
   
   /* --- REMOTE VIEW (CELL) --- */
   #remote-view { display: none; flex-direction: column; height: 100vh; width: 100vw; background: #111; color: white; font-family: sans-serif; text-align: center; }
-  .remote-module { display: none; flex-grow: 1; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+  .remote-module { display: none; flex-grow: 1; flex-direction: column; justify-content: center; align-items: center; padding: 20px; padding-bottom: 70px; }
   
   /* Swipe Module */
   #mod-swipe { position: relative; overflow: hidden; }
@@ -431,11 +431,14 @@ PEERJS : Pour la télécommande cellulaire.
 <div id="remote-view">
   
   <div id="mod-nav" class="remote-module" style="display: flex;">
-    <h2 style="margin: 0; padding: 10px; color: #7f8fa6;">Navigation</h2>
-    <div style="display: flex; gap: 10px; flex-grow: 1; width: 100%;">
-      <button class="nav-btn" onclick="sendCmd('prev')">⬅️</button>
-      <button class="nav-btn" onclick="sendCmd('next')">➡️</button>
-    </div>
+    <h2 style="margin: 0; padding: 10px; color: #7f8fa6;">📱 Connecté !</h2>
+    <p style="color: #7f8fa6; font-size: 1.2em;">Utilisez les flèches en bas pour naviguer</p>
+  </div>
+
+  <!-- Persistent nav arrows - always visible on cell -->
+  <div id="cell-nav-bar" style="position: fixed; bottom: 0; left: 0; right: 0; display: flex; gap: 10px; padding: 8px 15px; background: rgba(0,0,0,0.9); border-top: 2px solid #333; z-index: 900;">
+    <button onclick="sendCmd('prev')" style="flex: 1; padding: 12px; font-size: 1.5em; border: 2px solid #555; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; cursor: pointer;">⬅️</button>
+    <button onclick="sendCmd('next')" style="flex: 1; padding: 12px; font-size: 1.5em; border: 2px solid #555; border-radius: 12px; background: rgba(255,255,255,0.1); color: white; cursor: pointer;">➡️</button>
   </div>
 
   <div id="mod-swipe" class="remote-module">
