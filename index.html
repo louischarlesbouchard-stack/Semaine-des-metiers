@@ -458,6 +458,8 @@ PEERJS : Pour la télécommande cellulaire.
       <button onclick="sendSwipeVote(0)" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-blue); border-radius: 20px; background: rgba(52,152,219,0.2); color: white; cursor: pointer;">🚣 Guide de rafting</button>
       <button onclick="sendSwipeVote(1)" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-yellow); border-radius: 20px; background: rgba(241,196,15,0.2); color: white; cursor: pointer;">👨‍🍳 Cuisinier</button>
       <button onclick="sendSwipeVote(2)" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-red); border-radius: 20px; background: rgba(231,76,60,0.2); color: white; cursor: pointer;">📈 Consultant</button>
+      <hr style="width: 80%; border-color: #444; margin: 10px 0;">
+      <button onclick="sendEndVote()" style="width: 85%; padding: 15px; font-size: 1.5em; border: none; border-radius: 20px; background: #e74c3c; color: white; cursor: pointer;">🏁 TERMINER LE VOTE</button>
     </div>
   </div>
 
@@ -773,6 +775,11 @@ PEERJS : Pour la télécommande cellulaire.
         const activeSlide = slides[currentSlide];
         if(activeSlide.id === 'slide-vote-1') voteAction(1, data.choice);
         if(activeSlide.id === 'slide-vote-2') voteAction(2, data.side);
+      }
+      if(data.type === 'END_VOTE') {
+        const activeSlide = slides[currentSlide];
+        if(activeSlide.id === 'slide-vote-1') terminerVote(1);
+        if(activeSlide.id === 'slide-vote-2') terminerVote(2);
       }
       if(data.type === 'BUZZ') {
         playSynth('boing');
@@ -1097,6 +1104,8 @@ PEERJS : Pour la télécommande cellulaire.
     });
 
     window.sendCmd = (cmd) => { if(conn && conn.open) conn.send({type: 'CMD_NAV', cmd}); };
+    window.sendPhotoCmd = (cmd) => { if(conn && conn.open) conn.send({type: 'PHOTO_CMD', cmd: cmd}); };
+    window.sendEndVote = () => { if(conn && conn.open) conn.send({type: 'END_VOTE'}); };
     
     // Swipe logic - carousel with 3 choices + swipe up to confirm
     // Simple button vote
