@@ -1042,6 +1042,31 @@ PEERJS : Pour la télécommande cellulaire.
 
         }
         if(data.type === 'DO_PHOTO') executePhotoCapture();
+        // Cell camera streaming to laptop
+        if(data.type === 'START_CELL_CAM') {
+          navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}})
+            .then(stream => {
+              window._cellCamStream = stream;
+              const call = peer.call(remoteId, stream);
+              window._cellCamCall = call;
+              showToast('📸 Caméra activée !', false);
+            })
+            .catch(() => {
+              navigator.mediaDevices.getUserMedia({video: true})
+                .then(stream => {
+                  window._cellCamStream = stream;
+                  const call = peer.call(remoteId, stream);
+                  window._cellCamCall = call;
+                  showToast('📸 Caméra activée !', false);
+                })
+                .catch(() => showToast('❌ Caméra refusée !', true));
+            });
+        }
+        if(data.type === 'STOP_CELL_CAM') {
+          if(window._cellCamStream) { window._cellCamStream.getTracks().forEach(t => t.stop()); window._cellCamStream = null; }
+          if(window._cellCamCall) { window._cellCamCall.close(); window._cellCamCall = null; }
+          showToast('📸 Caméra fermée', false);
+        }
         // Test cell hardware
         if(data.type === 'TEST_CAM') {
           navigator.mediaDevices.getUserMedia({video: true})
