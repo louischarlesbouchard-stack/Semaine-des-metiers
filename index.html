@@ -1132,6 +1132,11 @@ PEERJS : Pour la télécommande cellulaire.
     peer.on('open', () => {
       conn = peer.connect(remoteId);
       conn.on('open', () => { showToast("✅ Connecté au Laptop", false); });
+      conn.on('error', (err) => { alert("Erreur de connexion : " + err); });
+      peer.on('error', (err) => { 
+        if(err.type === 'peer-unavailable') alert("L'ordinateur n'est plus joignable. Veuillez rescanner le nouveau code QR !");
+        else showToast("Erreur PeerJS: " + err.type);
+      });
       conn.on('data', (data) => {
         if(data.type === 'PANIC') {
            document.body.innerHTML = "<h1 style='color:red; margin-top:50vh; transform:translateY(-50%);'>MODE PANIQUE - ÉCRAN COUPÉ</h1>";
