@@ -598,9 +598,12 @@ PEERJS : Pour la télécommande cellulaire.
       if(activeSlide.id !== 'slide-photo' && document.getElementById('video-cam').srcObject) stopCam(); // stop scanner cam if leaving
 
       // Extract slide content for cell preview (teleprompter)
-      const clone = activeSlide.cloneNode(true);
-      clone.querySelectorAll('img, video, iframe, button').forEach(el => el.remove()); // clean up media/buttons
-      const slideHTML = clone.innerHTML;
+      let slideHTML = '';
+      if (mod === 'nav') {
+        const clone = activeSlide.cloneNode(true);
+        clone.querySelectorAll('img, video, iframe, button').forEach(el => el.remove()); // clean up media/buttons
+        slideHTML = clone.innerHTML;
+      }
 
       if(conn && conn.open) conn.send({type: 'SWITCH_MODULE', module: mod, html: slideHTML, num: 'Slide ' + (currentSlide+1) + '/' + slides.length});
       
