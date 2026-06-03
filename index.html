@@ -751,6 +751,11 @@ PEERJS : Pour la télécommande cellulaire.
         if(data.cmd === 'pause') v.pause();
         if(data.cmd === 'restart') { v.currentTime = 0; v.play(); }
       }
+      if(data.type === 'TEST_RESULT') {
+        const btn = document.getElementById('test-' + data.device);
+        if(data.ok) { btn.style.background = 'green'; btn.innerText = '✅ ' + data.device.toUpperCase() + ' OK'; }
+        else { btn.style.background = 'red'; btn.innerText = '❌ ' + data.device.toUpperCase() + ' FAIL'; }
+      }
       if(data.type === 'VOTE') {
         const activeSlide = slides[currentSlide];
         if(activeSlide.id === 'slide-vote-1') voteAction(1, data.choice);
@@ -978,9 +983,17 @@ PEERJS : Pour la télécommande cellulaire.
       o.appendChild(d); setTimeout(()=>d.remove(), 3000);
     }
 
-    // Test Buttons
-    window.testMic = () => { navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{ document.getElementById('test-mic').style.background='green'; document.getElementById('test-mic').innerText='✅ MIC OK'; s.getTracks().forEach(t=>t.stop()); }).catch(()=>document.getElementById('test-mic').style.background='red'); };
-    window.testCam = () => { navigator.mediaDevices.getUserMedia({video:true}).then(s=>{ document.getElementById('test-cam').style.background='green'; document.getElementById('test-cam').innerText='✅ CAM OK'; s.getTracks().forEach(t=>t.stop()); }).catch(()=>document.getElementById('test-cam').style.background='red'); };
+    // Test Buttons - test cell's hardware
+    window.testMic = () => {
+      if(!conn || !conn.open) { document.getElementById('test-mic').style.background='red'; document.getElementById('test-mic').innerText='❌ PAS CONNECTÉ'; return; }
+      conn.send({type: 'TEST_MIC'});
+      document.getElementById('test-mic').innerText='⏳ Test...';
+    };
+    window.testCam = () => {
+      if(!conn || !conn.open) { document.getElementById('test-cam').style.background='red'; document.getElementById('test-cam').innerText='❌ PAS CONNECTÉ'; return; }
+      conn.send({type: 'TEST_CAM'});
+      document.getElementById('test-cam').innerText='⏳ Test...';
+    };
     window.testInternet = () => { fetch('https://api.anthropic.com', {mode:'no-cors'}).then(()=>{ document.getElementById('test-net').style.background='green'; document.getElementById('test-net').innerText='✅ API OK'; }).catch(()=>{ document.getElementById('test-net').style.background='red'; }); };
 
     // Init Laptop
@@ -1025,6 +1038,17 @@ PEERJS : Pour la télécommande cellulaire.
 
         }
         if(data.type === 'DO_PHOTO') executePhotoCapture();
+        // Test cell hardware
+        if(data.type === 'TEST_CAM') {
+          navigator.mediaDevices.getUserMedia({video: true})
+            .then(s => { s.getTracks().forEach(t => t.stop()); conn.send({type: 'TEST_RESULT', device: 'cam', ok: true}); })
+            .catch(() => { conn.send({type: 'TEST_RESULT', device: 'cam', ok: false}); });
+        }
+        if(data.type === 'TEST_MIC') {
+          navigator.mediaDevices.getUserMedia({audio: true})
+            .then(s => { s.getTracks().forEach(t => t.stop()); conn.send({type: 'TEST_RESULT', device: 'mic', ok: true}); })
+            .catch(() => { conn.send({type: 'TEST_RESULT', device: 'mic', ok: false}); });
+        }
       });
       conn.on('close', () => showToast("❌ Déconnecté"));
     });
@@ -1063,7 +1087,17 @@ PEERJS : Pour la télécommande cellulaire.
     let cellVideoStream;
     async function initCellVideo() {
       if(!cellVideoStream) {
-        try { cellVideoStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}}); document.getElementById('cell-video').srcObject = cellVideoStream; } catch(e){}
+        try {
+          cellVideoStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}});
+        } catch(e1) {
+          try {
+            cellVideoStream = await navigator.mediaDevices.getUserMedia({video: true});
+          } catch(e2) {
+            showToast('❌ Caméra refusée ! Vérifiez les permissions.', true);
+            return;
+          }
+        }
+        document.getElementById('cell-video').srcObject = cellVideoStream;
       }
     }
     window.takeCellPhoto = () => {
