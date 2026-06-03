@@ -631,6 +631,7 @@ PEERJS : Pour la télécommande cellulaire.
         conn = c;
         conn.on('open', () => {
           document.getElementById('cell-status').innerText = '📱 ✅ Cell connecté';
+          setTimeout(() => { document.getElementById('cell-status').style.display = 'none'; }, 3000);
           updateSlides(); // send current module
         });
         conn.on('data', handleCellData);
@@ -762,7 +763,7 @@ PEERJS : Pour la télécommande cellulaire.
       }
       if(data.type === 'TEST_RESULT') {
         const btn = document.getElementById('test-' + data.device);
-        if(data.ok) { btn.style.background = 'green'; btn.innerText = '✅ ' + data.device.toUpperCase() + ' OK'; }
+        if(data.ok) { btn.style.background = 'green'; btn.innerText = '✅ ' + data.device.toUpperCase() + ' OK'; setTimeout(() => { btn.style.display = 'none'; }, 3000); }
         else { btn.style.background = 'red'; btn.innerText = '❌ ' + data.device.toUpperCase() + ' FAIL'; }
       }
       if(data.type === 'MAIN_COUNT') {
@@ -1007,7 +1008,7 @@ PEERJS : Pour la télécommande cellulaire.
       conn.send({type: 'TEST_CAM'});
       document.getElementById('test-cam').innerText='⏳ Test...';
     };
-    window.testInternet = () => { fetch('https://api.anthropic.com', {mode:'no-cors'}).then(()=>{ document.getElementById('test-net').style.background='green'; document.getElementById('test-net').innerText='✅ API OK'; }).catch(()=>{ document.getElementById('test-net').style.background='red'; }); };
+    window.testInternet = () => { fetch('https://api.anthropic.com', {mode:'no-cors'}).then(()=>{ const btn = document.getElementById('test-net'); btn.style.background='green'; btn.innerText='✅ API OK'; setTimeout(() => { btn.style.display = 'none'; }, 3000); }).catch(()=>{ document.getElementById('test-net').style.background='red'; }); };
 
     // Init Laptop
     updateSlides();
