@@ -789,10 +789,14 @@ PEERJS : Pour la télécommande cellulaire.
         document.getElementById('winner-text-2').innerText = winText;
       }
       const rev = document.getElementById(`winner-reveal-${id}`);
-      rev.style.display = 'block';
-      rev.style.animation = 'floatUp 4s forwards';
-      confetti({particleCount: 200, spread: 180});
-      playSynth('tada');
+      if(rev) {
+        rev.style.display = 'block';
+        rev.style.animation = 'floatUp 4s forwards';
+      }
+      try {
+        if(typeof confetti === 'function') confetti({particleCount: 200, spread: 180});
+        if(typeof playSynth === 'function') playSynth('tada');
+      } catch(e) { console.error(e); }
     };
     
     function resetVotes() { 
