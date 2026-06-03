@@ -440,16 +440,10 @@ PEERJS : Pour la télécommande cellulaire.
 
   <div id="mod-swipe" class="remote-module">
     <h2 id="swipe-title">VOTE !</h2>
-    <div id="swipe-area" style="flex-grow: 1; width: 100%; border: 2px dashed #555; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; user-select: none;">
-      <div id="swipe-choice-emoji" style="font-size: 6em; transition: transform 0.3s;"></div>
-      <div id="swipe-choice-name" style="font-size: 2.5em; font-weight: bold; margin-top: 10px; transition: transform 0.3s;"></div>
-      <div style="position: absolute; bottom: 20px; color: #f1c40f; font-size: 1.2em; font-weight: bold;" id="swipe-hint">⬅️ Glisse pour choisir ➡️<br>⬆️ Glisse vers le haut pour VOTER</div>
-    </div>
-    <div id="swipe-confirmed" style="display:none; flex-grow:1; width:100%; flex-direction:column; justify-content:center; align-items:center;">
-      <div style="font-size: 5em;">✅</div>
-      <h2 style="color: #2ecc71;">Vote envoyé !</h2>
-      <p style="font-size: 1.5em; color: #f1c40f; margin-top: 20px;">👉 Passe le cell au suivant !</p>
-      <button onclick="resetSwipeVote()" style="margin-top: 30px; background: #34495e; color: white; padding: 15px 30px; font-size: 1.5em; border: none; border-radius: 10px;">Suivant ➡️</button>
+    <div id="swipe-area" style="flex-grow: 1; width: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 15px;">
+      <button onclick="sendSwipeVote(0)" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-blue); border-radius: 20px; background: rgba(52,152,219,0.2); color: white; cursor: pointer;">🚣 Guide de rafting</button>
+      <button onclick="sendSwipeVote(1)" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-yellow); border-radius: 20px; background: rgba(241,196,15,0.2); color: white; cursor: pointer;">👨‍🍳 Cuisinier</button>
+      <button onclick="sendSwipeVote(2)" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-red); border-radius: 20px; background: rgba(231,76,60,0.2); color: white; cursor: pointer;">📈 Consultant</button>
     </div>
   </div>
 
@@ -1003,54 +997,11 @@ PEERJS : Pour la télécommande cellulaire.
     window.sendCmd = (cmd) => { if(conn && conn.open) conn.send({type: 'CMD_NAV', cmd}); };
     
     // Swipe logic - carousel with 3 choices + swipe up to confirm
-    const swipeChoices = [{emoji: '🚣', name: 'Guide de rafting'}, {emoji: '👨‍🍳', name: 'Cuisinier'}, {emoji: '📈', name: 'Consultant en amélioration'}];
-    let swipeIdx = 0;
-    let touchStartX = 0, touchStartY = 0, lastSwipe = 0;
-    
-    function updateSwipeDisplay() {
-      document.getElementById('swipe-choice-emoji').innerText = swipeChoices[swipeIdx].emoji;
-      document.getElementById('swipe-choice-name').innerText = swipeChoices[swipeIdx].name;
-    }
-    updateSwipeDisplay();
-    
-    window.resetSwipeVote = () => {
-      document.getElementById('swipe-confirmed').style.display = 'none';
-      document.getElementById('swipe-area').style.display = 'flex';
-      document.getElementById('swipe-hint').style.display = 'block';
-      swipeIdx = 0;
-      updateSwipeDisplay();
+    // Simple button vote
+    window.sendSwipeVote = (choice) => {
+      if(conn && conn.open) conn.send({type: 'VOTE', choice: choice});
+      showToast('✅ Voté ! Passe le cell au suivant !', false);
     };
-
-    const swipeArea = document.getElementById('swipe-area');
-    swipeArea.addEventListener('touchstart', e => {
-      if(e.touches.length === 1) {
-        touchStartX = e.changedTouches[0].screenX;
-        touchStartY = e.changedTouches[0].screenY;
-      }
-    }, {passive:true});
-    swipeArea.addEventListener('touchend', e => {
-      if(e.changedTouches.length > 1) return;
-      let touchEndX = e.changedTouches[0].screenX;
-      let touchEndY = e.changedTouches[0].screenY;
-      let now = Date.now();
-      if(now - lastSwipe < 400) return;
-      
-      let dx = touchEndX - touchStartX;
-      let dy = touchEndY - touchStartY;
-      
-      // Swipe UP = confirm vote
-      if(dy < -80 && Math.abs(dx) < Math.abs(dy)) {
-        if(conn && conn.open) conn.send({type: 'VOTE', choice: swipeIdx});
-        showToast('✅ Voté ! Passe le cell au suivant !', false);
-        swipeIdx = 0;
-        updateSwipeDisplay();
-        lastSwipe = now;
-        return;
-      }
-      // Swipe LEFT/RIGHT = browse choices
-      if(dx < -80) { swipeIdx = (swipeIdx + 1) % swipeChoices.length; updateSwipeDisplay(); lastSwipe = now; }
-      if(dx > 80) { swipeIdx = (swipeIdx - 1 + swipeChoices.length) % swipeChoices.length; updateSwipeDisplay(); lastSwipe = now; }
-    }, {passive:true});
     function sendVote(side) {
       if(conn && conn.open) conn.send({type: 'VOTE', side});
       showToast('✅ Vote envoyé !', false);
