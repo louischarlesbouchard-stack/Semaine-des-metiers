@@ -679,7 +679,7 @@ PEERJS : Pour la télécommande cellulaire.
 
     // PEERJS LAPTOP
     window.showQRCode = () => {
-      peer = new Peer();
+      peer = new Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478' }] } });
       peer.on('open', (id) => {
         const url = window.location.href.split('?')[0] + '?remote=' + id;
         document.getElementById('qr-overlay').style.display = 'block';
@@ -1128,7 +1128,7 @@ PEERJS : Pour la télécommande cellulaire.
     document.getElementById('remote-view').style.display = 'flex';
     
     // Connect to Laptop
-    peer = new Peer();
+    peer = new Peer({ config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478' }] } });
     peer.on('open', () => {
       conn = peer.connect(remoteId);
       conn.on('open', () => { showToast("✅ Connecté au Laptop", false); });
