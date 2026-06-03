@@ -518,6 +518,8 @@ PEERJS : Pour la télécommande cellulaire.
     <h2 style="color: var(--accent-yellow);">VOTE FINAL !</h2>
     <button onclick="sendVote2('l')" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-green); border-radius: 20px; background: rgba(46,204,113,0.2); color: white; cursor: pointer; margin-bottom: 15px;">👍 Ça va AIDER</button>
     <button onclick="sendVote2('r')" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-red); border-radius: 20px; background: rgba(231,76,60,0.2); color: white; cursor: pointer;">😨 Ça fait PEUR</button>
+    <hr style="width: 80%; border-color: #444; margin: 15px 0;">
+    <button onclick="sendEndVote()" style="width: 85%; padding: 15px; font-size: 1.5em; border: none; border-radius: 20px; background: #e74c3c; color: white; cursor: pointer;">🏁 TERMINER LE VOTE</button>
   </div>
 
   <div id="mod-micro" class="remote-module">
@@ -1090,6 +1092,7 @@ PEERJS : Pour la télécommande cellulaire.
            // Update slide preview
            document.getElementById('cell-slide-num').innerText = data.num || '';
            document.getElementById('cell-slide-content').innerHTML = data.html || '';
+           document.getElementById('cell-slide-preview').style.display = (data.module === 'nav') ? 'flex' : 'none';
            
 
         }
