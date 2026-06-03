@@ -967,8 +967,9 @@ PEERJS : Pour la télécommande cellulaire.
       // Swipe UP = confirm vote
       if(dy < -80 && Math.abs(dx) < Math.abs(dy)) {
         if(conn && conn.open) conn.send({type: 'VOTE', choice: swipeIdx});
-        document.getElementById('swipe-area').style.display = 'none';
-        document.getElementById('swipe-confirmed').style.display = 'flex';
+        showToast('✅ Voté ! Passe le cell au suivant !', false);
+        swipeIdx = 0;
+        updateSwipeDisplay();
         lastSwipe = now;
         return;
       }
