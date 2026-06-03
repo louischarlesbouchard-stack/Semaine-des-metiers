@@ -8,7 +8,7 @@ PEERJS : Pour la télécommande cellulaire.
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Le Métier de Louis - Créateur d'IA (Interactive V3)</title>
+<title>Le Métier de Louis-Charles - Créateur d'IA (Interactive V3)</title>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
@@ -134,9 +134,9 @@ PEERJS : Pour la télécommande cellulaire.
     <!-- 1. Intro -->
     <div class="slide active">
       <div class="emoji-giant" style="cursor: pointer;" ondblclick="showQRCode()">👋</div>
-      <h1>Bonjour! Je m'appelle Louis</h1>
+      <h1>Bonjour! Je m'appelle Louis-Charles</h1>
       <h2 style="color: var(--accent-green);">(Le fier beau-papa d'Anthony !)</h2>
-      <h2>Devinez c'est quoi mon métier?</h2>
+      <h2>Devinez quel est mon métier?</h2>
       <div style="display: flex; gap: 20px; margin-top: 20px;">
         <button onclick="configurerCleIA()" style="background: var(--accent-blue); display:none;">🔑 Configurer clé IA</button>
         <button onclick="showQRCode()" style="background: var(--accent-green); display:none;">📱 Connecter Cell</button>
@@ -292,7 +292,7 @@ PEERJS : Pour la télécommande cellulaire.
       <p style="font-size: 1.3em;">Pour obtenir cette présentation du premier coup, j'aurais dû écrire :</p>
       <div class="code-box" style="font-size: 1em; max-height: 55vh; overflow-y: auto; width: 85%;">
         <p style="color: #f1c40f; margin: 0;">"Crée une présentation HTML interactive pour le Jour des métiers dans une école primaire (enfants de 9-10 ans).</p>
-        <p style="margin: 8px 0;">Je m'appelle Louis, beau-papa d'Anthony. Je travaille pour un distributeur industriel avec 20 000 produits en stock.</p>
+        <p style="margin: 8px 0;">Je m'appelle Louis-Charles, beau-papa d'Anthony. Je travaille pour un distributeur industriel avec 20 000 produits en stock.</p>
         <p style="margin: 8px 0;">Mon métier : créer des outils avec l'IA (Claude + Antigravity) sans savoir programmer.</p>
         <p style="margin: 8px 0;">Inclure : un vote par swipe (3 choix de métier), un applaudimètre, une caméra qui détecte les visages, un chatbot IA pour les questions, une photo de classe avec analyse IA, un quiz sur les prompts.</p>
         <p style="margin: 8px 0;">Navigation par flèches clavier. Connecter un cellulaire par QR code comme télécommande. Mode magie vocal activé automatiquement.</p>
@@ -304,7 +304,7 @@ PEERJS : Pour la télécommande cellulaire.
     <div class="slide">
       <div class="emoji-giant" style="animation: none;">🪄</div><h2>Place à la magie...</h2>
       <button class="live-demo-btn" style="font-size: 2em; margin-top: 30px;" onclick="document.getElementById('demo-memo').style.display='block'">🎬 Démo en direct avec Antigravity</button>
-      <h3 id="demo-memo" style="display:none; color: var(--accent-yellow); background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px;">👋 Louis, bascule vers Antigravity (Alt+Tab) !</h3>
+      <h3 id="demo-memo" style="display:none; color: var(--accent-yellow); background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px;">👋 Louis-Charles, bascule vers Antigravity (Alt+Tab) !</h3>
     </div>
     
     <div class="slide">
@@ -498,7 +498,7 @@ PEERJS : Pour la télécommande cellulaire.
     };
     function checkAPIKey() {
       if(!ANTHROPIC_API_KEY) {
-        alert("Clé API manquante ! Demandez à Louis de configurer la clé (Slide 1).");
+        alert("Clé API manquante ! Demandez à Louis-Charles de configurer la clé (Slide 1).");
         return false;
       }
       return true;
