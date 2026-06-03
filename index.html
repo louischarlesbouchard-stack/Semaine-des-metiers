@@ -400,7 +400,7 @@ PEERJS : Pour la télécommande cellulaire.
     <div class="slide"><div class="emoji-giant">🚀</div><h2>C'est VOTRE futur!</h2><p>Pas besoin d'être un génie en maths !<br>Il faut être curieux, logique et savoir bien s'expliquer.</p></div>
 
     <!-- 29. Vote Final -->
-    <div class="slide" data-module="swipe" id="slide-vote-2">
+    <div class="slide" data-module="vote2" id="slide-vote-2">
       <h2>L'IA, plus tard quand vous serez grands...</h2>
       <div style="display: flex; justify-content: center; gap: 50px; width: 90%; margin-top: 30px;">
         <div class="vote-card" id="card-left-2"><h2>Ça va AIDER 👍</h2><h1 id="v2-left" style="font-size: 5em;">0</h1><div class="vote-bar-container"><div id="b2-left" class="vote-bar"></div></div></div>
@@ -469,6 +469,12 @@ PEERJS : Pour la télécommande cellulaire.
     <video id="cell-video" autoplay playsinline style="width: 100%; max-height: 50vh; border-radius: 10px; background: black; object-fit: cover;"></video>
     <button onclick="takeCellPhoto()" style="background: #e74c3c; color: white; padding: 20px; font-size: 2em; border: none; border-radius: 50px; margin-top: 20px; width: 80%;">📷 PRENDRE LA PHOTO</button>
     <canvas id="cell-canvas" style="display:none;"></canvas>
+  </div>
+
+  <div id="mod-vote2" class="remote-module">
+    <h2 style="color: var(--accent-yellow);">VOTE FINAL !</h2>
+    <button onclick="sendVote2('l')" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-green); border-radius: 20px; background: rgba(46,204,113,0.2); color: white; cursor: pointer; margin-bottom: 15px;">👍 Ça va AIDER</button>
+    <button onclick="sendVote2('r')" style="width: 85%; padding: 25px; font-size: 2em; border: 3px solid var(--accent-red); border-radius: 20px; background: rgba(231,76,60,0.2); color: white; cursor: pointer;">😨 Ça fait PEUR</button>
   </div>
 
   <div id="mod-micro" class="remote-module">
@@ -1022,6 +1028,10 @@ PEERJS : Pour la télécommande cellulaire.
       if(conn && conn.open) conn.send({type: 'VOTE', side});
       showToast('✅ Vote envoyé !', false);
     }
+    window.sendVote2 = (side) => {
+      if(conn && conn.open) conn.send({type: 'VOTE', side});
+      showToast('✅ Vote envoyé !', false);
+    };
 
     // Buzzer Logic
     window.sendVideoCmd = (cmd) => {
