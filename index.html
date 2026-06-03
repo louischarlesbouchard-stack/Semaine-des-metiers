@@ -195,27 +195,27 @@ PEERJS : Pour la télécommande cellulaire.
     <div class="slide"><h2>Qu'est-ce qu'on vend?</h2>
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 85%; margin-top: 15px;">
         <div style="background: rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; text-align: center;">
-          <img src="images/fasteners.jpg" style="width: 100%; height: 150px; object-fit: cover;">
+          <img src="images/fasteners.jpg" style="width: 100%; height: 220px; object-fit: cover;">
           <p style="font-size: 1.2em; margin: 8px 0;">🔩 Attaches</p>
         </div>
         <div style="background: rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; text-align: center;">
-          <img src="images/abrasives.jpg" style="width: 100%; height: 150px; object-fit: cover;">
+          <img src="images/abrasives.jpg" style="width: 100%; height: 220px; object-fit: cover;">
           <p style="font-size: 1.2em; margin: 8px 0;">⚙️ Abrasifs</p>
         </div>
         <div style="background: rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; text-align: center;">
-          <img src="images/cutting-tools.jpg" style="width: 100%; height: 150px; object-fit: cover;">
+          <img src="images/cutting-tools.jpg" style="width: 100%; height: 220px; object-fit: cover;">
           <p style="font-size: 1.2em; margin: 8px 0;">🔧 Outillage de coupe</p>
         </div>
         <div style="background: rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; text-align: center;">
-          <img src="images/adhesives.jpg" style="width: 100%; height: 150px; object-fit: cover;">
+          <img src="images/adhesives.jpg" style="width: 100%; height: 220px; object-fit: cover;">
           <p style="font-size: 1.2em; margin: 8px 0;">🧴 Adhésifs</p>
         </div>
         <div style="background: rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; text-align: center;">
-          <img src="images/fall-protection.jpg" style="width: 100%; height: 150px; object-fit: cover;">
+          <img src="images/fall-protection.jpg" style="width: 100%; height: 220px; object-fit: cover;">
           <p style="font-size: 1.2em; margin: 8px 0;">🦺 Protection contre les chutes</p>
         </div>
         <div style="background: rgba(255,255,255,0.1); border-radius: 15px; overflow: hidden; text-align: center;">
-          <img src="images/tools.jpg" style="width: 100%; height: 150px; object-fit: cover;">
+          <img src="images/tools.jpg" style="width: 100%; height: 220px; object-fit: cover;">
           <p style="font-size: 1.2em; margin: 8px 0;">🛠️ Outils</p>
         </div>
       </div>
@@ -508,6 +508,9 @@ PEERJS : Pour la télécommande cellulaire.
 
       if(conn && conn.open) conn.send({type: 'SWITCH_MODULE', module: mod});
       
+      // Show test tools and cell status only on slide 1
+      document.getElementById('test-tools').style.display = (currentSlide === 0) ? 'flex' : 'none';
+      document.getElementById('cell-status').style.display = (currentSlide === 0) ? 'block' : 'none';
 
       
       if(currentSlide === 10 && !panicMode) playSynth('tada'); // slide secret
