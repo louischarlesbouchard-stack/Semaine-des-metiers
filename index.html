@@ -565,7 +565,7 @@ PEERJS : Pour la télécommande cellulaire.
     document.getElementById('prevBtn').addEventListener('click', window.prevSlide);
     document.addEventListener('keydown', (e) => {
       if(e.ctrlKey && e.shiftKey && (e.key === 'c' || e.key === 'C')) { e.preventDefault(); configurerCleIA(); return; }
-      if(e.key === 'p' || e.key === 'P') triggerPanic();
+      // panic mode disabled
       else if(e.key === 'r' || e.key === 'R') resetVotes();
       else if(e.key === 'ArrowRight' || e.key === ' ') window.nextSlide();
       else if(e.key === 'ArrowLeft') window.prevSlide();
