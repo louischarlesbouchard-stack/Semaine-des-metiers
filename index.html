@@ -867,8 +867,9 @@ PEERJS : Pour la télécommande cellulaire.
           })
         });
         const data = await res.json();
+        if(data.error) { resDiv.innerText = "❌ Erreur API: " + data.error.message; return; }
         typeWriter("🤖 " + data.content[0].text, resDiv);
-      } catch(e) { resDiv.innerText = "❌ Oups, le signal est coupé !"; }
+      } catch(e) { resDiv.innerText = "❌ Oups, le signal est coupé ! (" + e.message + ")"; }
     };
     function typeWriter(txt, el) { el.innerText = ""; let i=0; function type(){ if(i<txt.length){el.innerHTML+=txt.charAt(i); i++; setTimeout(type,20);}} type(); }
 
